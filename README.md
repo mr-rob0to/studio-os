@@ -1,6 +1,6 @@
 # Studio OS
 
-Studio OS is an internal animation-studio brief application. It currently provides shared brief contracts and PostgreSQL persistence. Analysis, HTTP endpoints, and product screens arrive in later tasks.
+Studio OS is an internal animation-studio brief application. It currently provides shared brief contracts, PostgreSQL persistence, and server-only structured analysis providers. HTTP endpoints and product screens arrive in later tasks.
 
 ## Prerequisites
 
@@ -33,6 +33,14 @@ Open [http://localhost:3000](http://localhost:3000). The current shell does not 
 - Preview and production use `DATABASE_DRIVER=neon` plus a server-only `DATABASE_URL`; Vercel preview and production reject PGlite before it can load. Put the URL in an ignored `.env.local` locally or in sensitive deployment configuration, never in `NEXT_PUBLIC_` variables.
 - Apply the same committed migration to Neon with `pnpm db:migrate:neon`. This command requires `DATABASE_URL`; it does not use `drizzle-kit push`.
 
+## Analysis providers
+
+- Set `AI_PROVIDER=mock` for deterministic local analysis without credentials, or `AI_PROVIDER=openai` for the OpenAI Responses API.
+- OpenAI mode requires a server-only `OPENAI_API_KEY`; never expose it through a `NEXT_PUBLIC_` variable.
+- `OPENAI_MODEL` defaults to `gpt-4o-mini`, and `AI_TIMEOUT_MS` defaults to 12000 when omitted.
+- `MOCK_AI_MODE=success|timeout|malformed` provides explicit local failure verification. OpenAI failures never fall back to mock output.
+- Provider output remains untrusted until the analysis service parses it with the shared Zod contract.
+
 ## Commands
 
 ```bash
@@ -55,5 +63,5 @@ CI runs the frozen install, lint, typecheck, test, and production build commands
 
 ## Current scope
 
-- Included: accessible app shell, strict TypeScript, shared Zod contracts, PostgreSQL persistence, committed migrations, PGlite local/test support, Neon server-only composition, linting, tests, production build, CI, and environment examples.
-- Deferred: analysis providers, workflow APIs, product screens, health checks, and deployment.
+- Included: accessible app shell, strict TypeScript, shared Zod contracts, PostgreSQL persistence, PGlite and Neon adapters, versioned analysis prompt, deterministic mock and OpenAI providers, bounded analysis service, linting, tests, production build, CI, and environment examples.
+- Deferred: workflow APIs, analysis persistence orchestration, retries, product screens, health checks, and deployment.
