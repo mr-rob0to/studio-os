@@ -4,9 +4,11 @@ node_modules/
 # Next.js outputs
 .next/
 out/
+next-env.d.ts
 
 # Test outputs
 coverage/
+*.tsbuildinfo
 
 # Environment files
 .env
