@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const workflowStages = ["Brief", "Shape", "Decide"];
 
 export default function Home() {
@@ -19,6 +21,11 @@ export default function Home() {
           Studio OS turns creative briefs into shared decisions for animation
           teams. The workspace is ready for its first production workflow.
         </p>
+        <div className="hero-actions">
+          <Link className="button-link" href="/briefs">
+            Open brief board
+          </Link>
+        </div>
       </section>
 
       <ol className="timing-track" aria-label="Brief workflow">

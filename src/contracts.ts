@@ -30,6 +30,14 @@ export type BriefInput = z.infer<typeof briefInputSchema>;
 
 export const analysisStatusSchema = z.enum(["pending", "completed", "failed"]);
 
+export const briefSubmissionResponseSchema = z.object({
+  id: z.uuid(),
+  analysis: z.object({
+    status: analysisStatusSchema,
+    failureMessage: z.string().max(240).nullable(),
+  }),
+});
+
 const analysisText = (minimum: number, maximum: number) =>
   trimmedRequiredString(minimum, maximum);
 

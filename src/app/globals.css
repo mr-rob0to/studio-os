@@ -1,15 +1,20 @@
 :root {
-  --ink: #102838;
-  --ink-muted: #506574;
-  --paper: #f3f7f8;
-  --paper-bright: #ffffff;
-  --signal: #ed5e3f;
-  --aqua: #7dd8d3;
-  --line: #c8d6dc;
-  --display: "Arial Narrow", "Avenir Next Condensed", "Franklin Gothic Medium",
-    sans-serif;
-  --body: "Avenir Next", Avenir, "Segoe UI", sans-serif;
-  --utility: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --navy: #0a0e1a;
+  --navy-light: #141b2d;
+  --yellow: #ffd843;
+  --yellow-hover: #ffe066;
+  --white: #ffffff;
+  --white-muted: rgb(255 255 255 / 85%);
+  --white-dim: rgb(255 255 255 / 60%);
+  --line: rgb(255 255 255 / 11%);
+  --line-soft: rgb(255 255 255 / 6%);
+  --danger: #ff9a85;
+  --danger-paper: rgb(157 53 39 / 18%);
+  --success: #9ee5d6;
+  --success-paper: rgb(25 107 103 / 22%);
+  --display: var(--font-display), "Arial Narrow", sans-serif;
+  --body: var(--font-body), "Avenir Next", "Segoe UI", sans-serif;
+  --utility: var(--font-body), "Avenir Next", "Segoe UI", sans-serif;
 }
 
 * {
@@ -17,27 +22,43 @@
 }
 
 html {
-  background: var(--paper);
+  color-scheme: dark;
+  background: var(--navy);
+  scroll-behavior: smooth;
 }
 
 body {
   min-height: 100vh;
   margin: 0;
-  color: var(--ink);
-  background:
-    linear-gradient(90deg, transparent 49.9%, rgb(16 40 56 / 5%) 50%, transparent 50.1%),
-    var(--paper);
+  color: var(--white);
+  background: var(--navy);
   font-family: var(--body);
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+a {
+  color: inherit;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--yellow);
+  outline-offset: 4px;
 }
 
 .skip-link {
   position: fixed;
   top: 1rem;
   left: 1rem;
-  z-index: 10;
+  z-index: 20;
   padding: 0.7rem 1rem;
-  color: var(--paper-bright);
-  background: var(--ink);
+  color: var(--navy);
+  background: var(--yellow);
+  font-weight: 700;
   transform: translateY(-180%);
 }
 
@@ -49,9 +70,12 @@ body {
   display: grid;
   min-height: 100vh;
   grid-template-rows: auto 1fr auto auto;
-  width: min(100% - 2rem, 78rem);
+  width: min(100% - 4rem, 92rem);
   margin-inline: auto;
-  padding: 1.25rem 0 1rem;
+}
+
+.workspace-shell {
+  grid-template-rows: auto auto 1fr auto;
 }
 
 .masthead,
@@ -59,15 +83,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  font-family: var(--utility);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  gap: 1.5rem;
 }
 
 .masthead {
-  padding-bottom: 1rem;
+  min-height: 5.75rem;
   border-bottom: 1px solid var(--line);
 }
 
@@ -78,65 +98,82 @@ body {
 }
 
 .wordmark {
+  color: var(--white);
   font-family: var(--display);
-  font-size: 1rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
+  font-size: 2.1rem;
+  letter-spacing: 0.055em;
+  line-height: 1;
+  text-decoration: none;
+  text-transform: uppercase;
 }
 
 .wordmark span {
-  color: var(--signal);
+  color: var(--yellow);
 }
 
 .status {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
-  color: var(--ink-muted);
+  gap: 0.65rem;
+  color: var(--white-muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .status span {
   width: 0.55rem;
   height: 0.55rem;
   border-radius: 50%;
-  background: var(--aqua);
-  box-shadow: 0 0 0 0.2rem rgb(125 216 211 / 22%);
+  background: var(--yellow);
+  box-shadow: 0 0 0 0.2rem rgb(255 216 67 / 14%);
 }
 
 .hero {
   align-self: center;
-  max-width: 59rem;
-  padding: clamp(4rem, 12vw, 9rem) 0;
+  max-width: 65rem;
+  padding: clamp(5rem, 13vw, 11rem) 0;
+}
+
+.eyebrow,
+.collection-count,
+.brief-meta {
+  color: var(--yellow);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
 }
 
 .eyebrow {
-  margin: 0 0 1rem;
-  color: var(--signal);
-  font-family: var(--utility);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  margin: 0 0 1.3rem;
 }
 
 h1 {
   max-width: 12ch;
   margin: 0;
   font-family: var(--display);
-  font-size: clamp(3.5rem, 9vw, 8.5rem);
-  font-stretch: condensed;
-  font-weight: 800;
-  letter-spacing: -0.055em;
-  line-height: 0.84;
+  font-size: clamp(4.5rem, 10vw, 9rem);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 0.92;
   text-wrap: balance;
 }
 
 .lede {
-  max-width: 38rem;
+  max-width: 45rem;
   margin: 2rem 0 0;
-  color: var(--ink-muted);
-  font-size: clamp(1rem, 2vw, 1.25rem);
-  line-height: 1.6;
+  color: var(--white-muted);
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  font-weight: 300;
+  line-height: 1.8;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
 }
 
 .timing-track {
@@ -144,22 +181,21 @@ h1 {
   grid-template-columns: repeat(3, 1fr);
   margin: 0;
   padding: 0;
-  border-top: 1px solid var(--ink);
-  border-bottom: 1px solid var(--line);
+  border: 1px solid var(--line-soft);
   list-style: none;
 }
 
 .timing-track li {
   display: flex;
-  min-height: 5.5rem;
+  min-height: 8rem;
   align-items: center;
   gap: 1rem;
-  padding: 1rem;
-  border-right: 1px solid var(--line);
+  padding: 1.75rem;
+  border-right: 1px solid var(--line-soft);
+  background: rgb(255 255 255 / 2%);
   font-family: var(--display);
-  font-size: clamp(1.25rem, 3vw, 2.25rem);
-  font-weight: 800;
-  letter-spacing: -0.025em;
+  font-size: clamp(1.8rem, 3vw, 3rem);
+  letter-spacing: 0.025em;
 }
 
 .timing-track li:last-child {
@@ -167,25 +203,286 @@ h1 {
 }
 
 .frame-number {
-  color: var(--signal);
+  color: var(--yellow);
   font-family: var(--utility);
   font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 600;
+  letter-spacing: 0.12em;
 }
 
 .footer {
-  padding-top: 1rem;
-  color: var(--ink-muted);
+  min-height: 6rem;
+  color: var(--white-dim);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-@media (max-width: 42rem) {
-  body {
-    background: var(--paper);
-  }
+.page-heading {
+  padding: clamp(5rem, 10vw, 9rem) 0 clamp(3rem, 6vw, 5rem);
+}
 
+.page-heading h1 {
+  max-width: 11ch;
+  font-size: clamp(4.25rem, 9vw, 8rem);
+}
+
+.page-heading .lede {
+  max-width: 38rem;
+  margin-top: 1.5rem;
+}
+
+.button-link,
+.submit-button {
+  display: inline-flex;
+  min-height: 3.15rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem 1.2rem;
+  border: 1px solid var(--yellow);
+  color: var(--navy);
+  background: var(--yellow);
+  font-family: var(--utility);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  line-height: 1;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.button-link:hover,
+.submit-button:hover:not(:disabled) {
+  background: var(--yellow-hover);
+}
+
+.button-link-small {
+  min-height: 2.75rem;
+  padding: 0.65rem 1rem;
+}
+
+.text-link {
+  color: var(--white-muted);
+  font-size: 0.76rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-decoration-color: var(--yellow);
+  text-underline-offset: 0.35rem;
+  text-transform: uppercase;
+}
+
+.empty-state {
+  align-self: center;
+  max-width: 46rem;
+  margin: clamp(3rem, 8vw, 7rem) 0;
+  padding: clamp(2rem, 5vw, 4rem);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--yellow);
+  background: var(--navy-light);
+}
+
+.empty-state h2,
+.brief-card h2 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(2.2rem, 4vw, 3.8rem);
+  font-weight: 400;
+  letter-spacing: 0.015em;
+  line-height: 1;
+}
+
+.empty-state > p:not(.eyebrow) {
+  max-width: 34rem;
+  margin: 1rem 0 1.8rem;
+  color: var(--white-muted);
+  font-weight: 300;
+}
+
+.brief-collection {
+  padding: 0 0 clamp(4rem, 8vw, 8rem);
+}
+
+.collection-count {
+  margin: 0 0 1.2rem;
+}
+
+.brief-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line-soft);
+  border-left: 1px solid var(--line-soft);
+  list-style: none;
+}
+
+.brief-card {
+  display: grid;
+  min-height: 18rem;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  align-content: space-between;
+  gap: 1.5rem;
+  padding: clamp(1.75rem, 4vw, 3rem);
+  border-right: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--line-soft);
+  background: rgb(255 255 255 / 2%);
+}
+
+.brief-card:hover {
+  background: var(--navy-light);
+}
+
+.brief-card .frame-number {
+  padding-top: 0.3rem;
+}
+
+.brief-card h2 a {
+  text-decoration-color: transparent;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.15em;
+}
+
+.brief-card h2 a:hover {
+  text-decoration-color: var(--yellow);
+}
+
+.brief-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin: 0 0 1rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+}
+
+.brief-audience {
+  max-width: 40rem;
+  margin: 1rem 0 0;
+  color: var(--white-dim);
+  font-size: 0.92rem;
+  font-weight: 300;
+  line-height: 1.65;
+}
+
+.brief-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.75rem clamp(1.75rem, 5vw, 4rem);
+  padding: 0 0 clamp(5rem, 10vw, 9rem);
+}
+
+.form-field {
+  display: grid;
+  align-content: start;
+  gap: 0.65rem;
+}
+
+.form-field-wide,
+.form-message {
+  grid-column: 1 / -1;
+}
+
+.form-field label {
+  color: var(--yellow);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.form-field label span {
+  color: var(--white-dim);
+  font-weight: 400;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  color: var(--white);
+  background: var(--navy-light);
+  font: inherit;
+}
+
+.form-field input,
+.form-field select {
+  min-height: 3.5rem;
+  padding: 0.8rem 0.95rem;
+}
+
+.form-field textarea {
+  min-height: 8rem;
+  padding: 0.95rem;
+  line-height: 1.65;
+  resize: vertical;
+}
+
+.form-field input:hover,
+.form-field select:hover,
+.form-field textarea:hover {
+  border-color: rgb(255 216 67 / 55%);
+}
+
+.form-field [aria-invalid="true"] {
+  border-color: var(--danger);
+  box-shadow: inset 0.22rem 0 0 var(--danger);
+}
+
+.field-error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 0.83rem;
+  font-weight: 600;
+}
+
+.form-message {
+  margin: 0;
+  padding: 1rem 1.2rem;
+  border-left: 0.25rem solid currentColor;
+  line-height: 1.55;
+}
+
+.form-message p {
+  margin: 0 0 0.35rem;
+}
+
+.form-message-error {
+  color: var(--danger);
+  background: var(--danger-paper);
+}
+
+.form-message-saved {
+  color: var(--success);
+  background: var(--success-paper);
+}
+
+.form-message-saved a {
+  font-weight: 700;
+  text-underline-offset: 0.25rem;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 0.75rem;
+}
+
+.submit-button {
+  min-width: min(100%, 17rem);
+  cursor: pointer;
+}
+
+.submit-button:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+@media (max-width: 52rem) {
   .shell {
-    width: min(100% - 1.5rem, 78rem);
+    width: min(100% - 2rem, 92rem);
   }
 
   .masthead,
@@ -194,7 +491,25 @@ h1 {
   }
 
   .hero {
-    padding-block: 4.5rem;
+    padding-block: 5rem;
+  }
+
+  .page-heading {
+    padding-block: 4.5rem 3rem;
+  }
+
+  .brief-list,
+  .brief-form {
+    grid-template-columns: 1fr;
+  }
+
+  .form-field-wide,
+  .form-message {
+    grid-column: auto;
+  }
+
+  .brief-card {
+    min-height: 15rem;
   }
 
   .timing-track {
@@ -202,13 +517,36 @@ h1 {
   }
 
   .timing-track li {
-    min-height: 4.25rem;
+    min-height: 5.5rem;
     border-right: 0;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--line-soft);
   }
 
   .timing-track li:last-child {
     border-bottom: 0;
+  }
+}
+
+@media (max-width: 34rem) {
+  .masthead {
+    min-height: 5rem;
+  }
+
+  .wordmark {
+    font-size: 1.8rem;
+  }
+
+  .button-link-small {
+    min-height: 2.5rem;
+    padding-inline: 0.8rem;
+  }
+
+  .brief-card {
+    grid-template-columns: 1fr;
+  }
+
+  .brief-card .frame-number {
+    padding-top: 0;
   }
 }
 
@@ -221,6 +559,6 @@ h1 {
 @keyframes status-pulse {
   60%,
   100% {
-    box-shadow: 0 0 0 0.65rem rgb(125 216 211 / 0%);
+    box-shadow: 0 0 0 0.65rem rgb(255 216 67 / 0%);
   }
 }

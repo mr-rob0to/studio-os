@@ -18,5 +18,9 @@ describe("Home", () => {
     expect(screen.getByText("Brief")).toBeInTheDocument();
     expect(screen.getByText("Shape")).toBeInTheDocument();
     expect(screen.getByText("Decide")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Open brief board" })).toHaveAttribute(
+      "href",
+      "/briefs",
+    );
   });
 });

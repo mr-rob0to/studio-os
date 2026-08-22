@@ -1,6 +1,6 @@
 # Studio OS
 
-Studio OS is an internal animation-studio brief application. It provides shared brief contracts, PostgreSQL persistence, server-only structured analysis providers, and create and retry workflow endpoints. Product screens arrive in later tasks.
+Studio OS is an internal animation-studio brief application. It provides a brief board and submission interface backed by shared contracts, PostgreSQL persistence, server-only structured analysis providers, and create and retry workflow endpoints.
 
 ## Prerequisites
 
@@ -24,7 +24,7 @@ pnpm db:migrate:local
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The current shell does not yet read from the database, but the mutation endpoints are available under `/api/briefs`.
+Open [http://localhost:3000](http://localhost:3000), then use the brief board at `/briefs` and the submission form at `/briefs/new`.
 
 ## Database environments
 
@@ -65,6 +65,13 @@ pnpm db:migrate:neon  # apply the same migrations to Neon
 
 CI runs the frozen install, lint, typecheck, test, and production build commands for every pull request into `main`.
 
+## Accessibility and browser support
+
+- The brief board and submission form use semantic headings, labels, field-level errors, live status messages, visible keyboard focus, and a skip link.
+- Keyboard-only use is supported for navigation, form entry, validation recovery, and submission.
+- Layouts adapt from a two-column desktop presentation to a single-column mobile flow, and motion respects `prefers-reduced-motion`.
+- The supported baseline is the current and previous major versions of Chrome, Edge, Firefox, and Safari.
+
 ## Project guidance
 
 - Engineering standards: [`docs/constitution.md`](docs/constitution.md)
@@ -72,5 +79,5 @@ CI runs the frozen install, lint, typecheck, test, and production build commands
 
 ## Current scope
 
-- Included: accessible app shell, strict TypeScript, shared Zod contracts, PostgreSQL persistence, PGlite and Neon adapters, versioned analysis prompt, deterministic mock and OpenAI providers, bounded analysis service, brief workflow APIs, atomic retries, safe request errors, linting, tests, production build, CI, and environment examples.
-- Deferred: product screens, health checks, and deployment.
+- Included: accessible app shell, brief list and submission screens, strict TypeScript, shared Zod contracts, PostgreSQL persistence, PGlite and Neon adapters, versioned analysis prompt, deterministic mock and OpenAI providers, bounded analysis service, brief workflow APIs, atomic retries, safe request errors, linting, tests, production build, CI, and environment examples.
+- Deferred: brief detail and retry screens, health checks, and deployment.
