@@ -1,0 +1,226 @@
+:root {
+  --ink: #102838;
+  --ink-muted: #506574;
+  --paper: #f3f7f8;
+  --paper-bright: #ffffff;
+  --signal: #ed5e3f;
+  --aqua: #7dd8d3;
+  --line: #c8d6dc;
+  --display: "Arial Narrow", "Avenir Next Condensed", "Franklin Gothic Medium",
+    sans-serif;
+  --body: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  --utility: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--ink);
+  background:
+    linear-gradient(90deg, transparent 49.9%, rgb(16 40 56 / 5%) 50%, transparent 50.1%),
+    var(--paper);
+  font-family: var(--body);
+}
+
+.skip-link {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 10;
+  padding: 0.7rem 1rem;
+  color: var(--paper-bright);
+  background: var(--ink);
+  transform: translateY(-180%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.shell {
+  display: grid;
+  min-height: 100vh;
+  grid-template-rows: auto 1fr auto auto;
+  width: min(100% - 2rem, 78rem);
+  margin-inline: auto;
+  padding: 1.25rem 0 1rem;
+}
+
+.masthead,
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--utility);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.masthead {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.wordmark,
+.status,
+.footer p {
+  margin: 0;
+}
+
+.wordmark {
+  font-family: var(--display);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.wordmark span {
+  color: var(--signal);
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--ink-muted);
+}
+
+.status span {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--aqua);
+  box-shadow: 0 0 0 0.2rem rgb(125 216 211 / 22%);
+}
+
+.hero {
+  align-self: center;
+  max-width: 59rem;
+  padding: clamp(4rem, 12vw, 9rem) 0;
+}
+
+.eyebrow {
+  margin: 0 0 1rem;
+  color: var(--signal);
+  font-family: var(--utility);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1 {
+  max-width: 12ch;
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(3.5rem, 9vw, 8.5rem);
+  font-stretch: condensed;
+  font-weight: 800;
+  letter-spacing: -0.055em;
+  line-height: 0.84;
+  text-wrap: balance;
+}
+
+.lede {
+  max-width: 38rem;
+  margin: 2rem 0 0;
+  color: var(--ink-muted);
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  line-height: 1.6;
+}
+
+.timing-track {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--line);
+  list-style: none;
+}
+
+.timing-track li {
+  display: flex;
+  min-height: 5.5rem;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-right: 1px solid var(--line);
+  font-family: var(--display);
+  font-size: clamp(1.25rem, 3vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.timing-track li:last-child {
+  border-right: 0;
+}
+
+.frame-number {
+  color: var(--signal);
+  font-family: var(--utility);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.footer {
+  padding-top: 1rem;
+  color: var(--ink-muted);
+}
+
+@media (max-width: 42rem) {
+  body {
+    background: var(--paper);
+  }
+
+  .shell {
+    width: min(100% - 1.5rem, 78rem);
+  }
+
+  .masthead,
+  .footer {
+    align-items: flex-start;
+  }
+
+  .hero {
+    padding-block: 4.5rem;
+  }
+
+  .timing-track {
+    grid-template-columns: 1fr;
+  }
+
+  .timing-track li {
+    min-height: 4.25rem;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .timing-track li:last-child {
+    border-bottom: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .status span {
+    animation: status-pulse 2.8s ease-out infinite;
+  }
+}
+
+@keyframes status-pulse {
+  60%,
+  100% {
+    box-shadow: 0 0 0 0.65rem rgb(125 216 211 / 0%);
+  }
+}

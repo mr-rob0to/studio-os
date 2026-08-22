@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Next.js outputs
+.next/
+out/
+next-env.d.ts
+
+# Test outputs
+coverage/
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Local PGlite data
+.pglite/
+
+# Vercel metadata
+.vercel/
+
+# Local worktrees
+.worktrees/
+
+# Logs and platform files
+*.log
+.DS_Store
