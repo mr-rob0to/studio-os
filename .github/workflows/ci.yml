@@ -35,6 +35,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify committed migration
+        env:
+          PGLITE_DATA_DIR: ${{ runner.temp }}/studio-os-migration-check
+        run: pnpm db:migrate:local
+
       - name: Lint
         run: pnpm lint
 
