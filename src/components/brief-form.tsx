@@ -2,7 +2,6 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import {
   apiErrorSchema,
@@ -36,19 +35,24 @@ const validationMessages: Record<FieldName, string> = {
   notes: "Keep notes to 2,000 characters or fewer.",
 };
 
-const submissionFailureMessage =
-  "We couldn't submit your brief. Your work is still here. Try again.";
+const validationFailureMessage =
+  "We couldn't validate this brief. Check your entries and try again.";
+const uncertainSubmissionMessage =
+  "We couldn't confirm whether your brief was saved. Check the brief board before submitting again. Your work is still here.";
 
 export function BriefForm() {
-  const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const submissionInFlight = useRef(false);
   const [values, setValues] = useState<FormValues>(initialValues);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [savedFailureId, setSavedFailureId] = useState<string | null>(null);
+  const [submissionUncertain, setSubmissionUncertain] = useState(false);
+  const [savedBrief, setSavedBrief] = useState<{
+    id: string;
+    analysisFailed: boolean;
+  } | null>(null);
+  const isSubmitted = savedBrief !== null;
 
   function updateValue(field: FieldName, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
@@ -120,29 +124,34 @@ export function BriefForm() {
 
           if (firstInvalidField) {
             focusField(firstInvalidField);
+          } else {
+            setSubmissionError(validationFailureMessage);
           }
         } else {
-          setSubmissionError(submissionFailureMessage);
+          keepSubmissionLocked = true;
+          setSubmissionUncertain(true);
+          setSubmissionError(uncertainSubmissionMessage);
         }
       } else {
         const submission = briefSubmissionResponseSchema.safeParse(body);
 
         if (!submission.success) {
-          setSubmissionError(submissionFailureMessage);
+          keepSubmissionLocked = true;
+          setSubmissionUncertain(true);
+          setSubmissionError(uncertainSubmissionMessage);
           return;
         }
 
         keepSubmissionLocked = true;
-        setIsSubmitted(true);
-
-        if (submission.data.analysis.status === "failed") {
-          setSavedFailureId(submission.data.id);
-        } else {
-          router.push(`/briefs/${submission.data.id}`);
-        }
+        setSavedBrief({
+          id: submission.data.id,
+          analysisFailed: submission.data.analysis.status === "failed",
+        });
       }
     } catch {
-      setSubmissionError(submissionFailureMessage);
+      keepSubmissionLocked = true;
+      setSubmissionUncertain(true);
+      setSubmissionError(uncertainSubmissionMessage);
     } finally {
       submissionInFlight.current = keepSubmissionLocked;
       setIsSubmitting(false);
@@ -159,14 +168,21 @@ export function BriefForm() {
       ref={formRef}
     >
       {submissionError ? (
-        <p className="form-message form-message-error" role="alert">
-          {submissionError}
-        </p>
+        <div className="form-message form-message-error" role="alert">
+          <p>{submissionError}</p>
+          {submissionUncertain ? (
+            <Link href="/briefs">Check the brief board</Link>
+          ) : null}
+        </div>
       ) : null}
-      {savedFailureId ? (
+      {savedBrief ? (
         <div className="form-message form-message-saved" role="status">
-          <p>Your brief was saved, but analysis could not finish.</p>
-          <Link href={`/briefs/${savedFailureId}`}>Open saved brief</Link>
+          <p>
+            {savedBrief.analysisFailed
+              ? "Your brief was saved, but analysis could not finish."
+              : "Your brief was created and analyzed."}
+          </p>
+          <Link href={`/briefs/${savedBrief.id}`}>Open saved brief</Link>
         </div>
       ) : null}
 
@@ -286,20 +302,30 @@ export function BriefForm() {
       <div className="form-actions form-field-wide">
         <button
           className="submit-button"
-          disabled={isSubmitting || isSubmitted}
+          disabled={isSubmitting || isSubmitted || submissionUncertain}
           type="submit"
         >
-          {isSubmitted
-            ? savedFailureId
-              ? "Brief saved"
-              : "Brief created"
-            : isSubmitting
-              ? "Submitting and analyzing…"
-              : "Submit and analyze"}
+          {getSubmitButtonLabel(isSubmitting, submissionUncertain, savedBrief)}
         </button>
       </div>
     </form>
   );
+}
+
+function getSubmitButtonLabel(
+  isSubmitting: boolean,
+  submissionUncertain: boolean,
+  savedBrief: { analysisFailed: boolean } | null,
+): string {
+  if (submissionUncertain) {
+    return "Submission uncertain";
+  }
+
+  if (savedBrief) {
+    return savedBrief.analysisFailed ? "Brief saved" : "Brief created";
+  }
+
+  return isSubmitting ? "Submitting and analyzing…" : "Submit and analyze";
 }
 
 function toFieldErrors(

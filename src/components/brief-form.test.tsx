@@ -1,14 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const formMocks = vi.hoisted(() => ({
-  push: vi.fn(),
-}));
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: formMocks.push }),
-}));
-
 import { BriefForm } from "./brief-form";
 
 const validValues = {
@@ -40,7 +32,6 @@ function fillValidForm() {
 
 describe("BriefForm", () => {
   beforeEach(() => {
-    formMocks.push.mockReset();
     vi.stubGlobal("fetch", vi.fn());
   });
 
@@ -95,10 +86,9 @@ describe("BriefForm", () => {
     );
     expect(screen.getByText("The title is already in use.")).toBeVisible();
     expect(screen.getByRole("textbox", { name: "Title" })).toHaveFocus();
-    expect(formMocks.push).not.toHaveBeenCalled();
   });
 
-  it("preserves work and shows a safe message when submission fails", async () => {
+  it("preserves work and blocks an immediate retry when submission is uncertain", async () => {
     vi.mocked(fetch).mockResolvedValue(
       Response.json(
         {
@@ -117,14 +107,61 @@ describe("BriefForm", () => {
     fireEvent.submit(screen.getByRole("form", { name: "New creative brief" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "We couldn't submit your brief. Your work is still here. Try again.",
+      "We couldn't confirm whether your brief was saved.",
     );
+    expect(
+      screen.getByRole("link", { name: "Check the brief board" }),
+    ).toHaveAttribute("href", "/briefs");
     expect(screen.queryByText(/secret-user/)).not.toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Title" })).toHaveValue(
       validValues.title,
     );
+    expect(
+      screen.getByRole("button", { name: "Submission uncertain" }),
+    ).toBeDisabled();
+  });
+
+  it("uses the same duplicate-safe state when the network result is unknown", async () => {
+    vi.mocked(fetch).mockRejectedValue(new TypeError("network disconnected"));
+    render(<BriefForm />);
+    fillValidForm();
+
+    fireEvent.submit(screen.getByRole("form", { name: "New creative brief" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "We couldn't confirm whether your brief was saved.",
+    );
+    expect(screen.getByRole("textbox", { name: "Title" })).toHaveValue(
+      validValues.title,
+    );
+    expect(
+      screen.getByRole("button", { name: "Submission uncertain" }),
+    ).toBeDisabled();
+  });
+
+  it("shows a visible fallback when server field errors cannot be mapped", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      Response.json(
+        {
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Check the brief fields and try again.",
+            fieldErrors: { futureField: ["A future field is invalid."] },
+          },
+        },
+        { status: 422 },
+      ),
+    );
+    render(<BriefForm />);
+    fillValidForm();
+
+    fireEvent.submit(screen.getByRole("form", { name: "New creative brief" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "We couldn't validate this brief. Check your entries and try again.",
+    );
+    expect(screen.queryByText("A future field is invalid.")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Submit and analyze" })).toBeEnabled();
-    expect(formMocks.push).not.toHaveBeenCalled();
   });
 
   it("prevents duplicate interactions from creating a second mutation", async () => {
@@ -159,11 +196,13 @@ describe("BriefForm", () => {
       ),
     );
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Submit and analyze" })).toBeEnabled(),
+      expect(
+        screen.getByRole("button", { name: "Submission uncertain" }),
+      ).toBeDisabled(),
     );
   });
 
-  it("navigates a successful submission to its future detail URL", async () => {
+  it("shows successful submission with navigation to its future detail URL", async () => {
     vi.mocked(fetch).mockResolvedValue(
       Response.json(
         {
@@ -178,10 +217,14 @@ describe("BriefForm", () => {
 
     fireEvent.submit(screen.getByRole("form", { name: "New creative brief" }));
 
-    await waitFor(() =>
-      expect(formMocks.push).toHaveBeenCalledWith(
-        "/briefs/00000000-0000-4000-8000-000000000001",
-      ),
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Your brief was created and analyzed.",
+    );
+    expect(
+      screen.getByRole("link", { name: "Open saved brief" }),
+    ).toHaveAttribute(
+      "href",
+      "/briefs/00000000-0000-4000-8000-000000000001",
     );
     expect(fetch).toHaveBeenCalledWith(
       "/api/briefs",
@@ -223,6 +266,5 @@ describe("BriefForm", () => {
       validValues.title,
     );
     expect(screen.getByRole("button", { name: "Brief saved" })).toBeDisabled();
-    expect(formMocks.push).not.toHaveBeenCalled();
   });
 });
