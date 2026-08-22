@@ -1,6 +1,6 @@
 # Studio OS
 
-Studio OS is an internal animation-studio brief application. It currently provides shared brief contracts, PostgreSQL persistence, and server-only structured analysis providers. HTTP endpoints and product screens arrive in later tasks.
+Studio OS is an internal animation-studio brief application. It provides shared brief contracts, PostgreSQL persistence, server-only structured analysis providers, and create and retry workflow endpoints. Product screens arrive in later tasks.
 
 ## Prerequisites
 
@@ -24,14 +24,16 @@ pnpm db:migrate:local
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The current shell does not yet read from the database.
+Open [http://localhost:3000](http://localhost:3000). The current shell does not yet read from the database, but the mutation endpoints are available under `/api/briefs`.
 
 ## Database environments
 
-- Local development uses `DATABASE_DRIVER=pglite` and writes only to `PGLITE_DATA_DIR`.
+- Set `APP_ENV=local|test|preview|production` and `DATABASE_DRIVER=pglite|neon` explicitly; missing or invalid values fail closed.
+- Local development uses `APP_ENV=local`, `DATABASE_DRIVER=pglite`, and writes only to `PGLITE_DATA_DIR`.
 - Tests create a fresh in-memory PGlite database and apply the same committed migration.
-- Preview and production use `DATABASE_DRIVER=neon` plus a server-only `DATABASE_URL`; Vercel preview and production reject PGlite before it can load. Put the URL in an ignored `.env.local` locally or in sensitive deployment configuration, never in `NEXT_PUBLIC_` variables.
-- Apply the same committed migration to Neon with `pnpm db:migrate:neon`. This command requires `DATABASE_URL`; it does not use `drizzle-kit push`.
+- Preview and production require `DATABASE_DRIVER=neon` plus a server-only `DATABASE_URL`; application configuration rejects PGlite before its adapter can load. Hosting configuration must map provider-specific deployment state to `APP_ENV` outside the application runtime.
+- Put database credentials in an ignored `.env.local` locally or in sensitive deployment configuration, never in `NEXT_PUBLIC_` variables.
+- Apply the same committed migration to Neon with `APP_ENV=preview pnpm db:migrate:neon` or `APP_ENV=production pnpm db:migrate:neon`. This command requires `DATABASE_URL`; it does not use `drizzle-kit push`.
 
 ## Analysis providers
 
@@ -40,6 +42,13 @@ Open [http://localhost:3000](http://localhost:3000). The current shell does not 
 - `OPENAI_MODEL` defaults to `gpt-4o-mini`, and `AI_TIMEOUT_MS` defaults to 12000 when omitted.
 - `MOCK_AI_MODE=success|timeout|malformed` provides explicit local failure verification. OpenAI failures never fall back to mock output.
 - Provider output remains untrusted until the analysis service parses it with the shared Zod contract.
+
+## Mutation endpoints
+
+- `POST /api/briefs` requires `application/json`, enforces a 16 KiB body limit, validates the brief, persists the brief and pending analysis, then runs the configured provider.
+- `POST /api/briefs/{id}/analysis` requires a valid brief UUID and an empty body. It retries a failed analysis, rejects active concurrent work, and reclaims pending work older than `AI_TIMEOUT_MS + 5 seconds`.
+- Provider timeout, refusal, failure, and malformed output remain stored as safe failed analysis records so the brief is never lost.
+- Errors use one JSON envelope with a request ID. Database failures, provider responses, credentials, and submitted brief content are never returned.
 
 ## Commands
 
@@ -63,5 +72,5 @@ CI runs the frozen install, lint, typecheck, test, and production build commands
 
 ## Current scope
 
-- Included: accessible app shell, strict TypeScript, shared Zod contracts, PostgreSQL persistence, PGlite and Neon adapters, versioned analysis prompt, deterministic mock and OpenAI providers, bounded analysis service, linting, tests, production build, CI, and environment examples.
-- Deferred: workflow APIs, analysis persistence orchestration, retries, product screens, health checks, and deployment.
+- Included: accessible app shell, strict TypeScript, shared Zod contracts, PostgreSQL persistence, PGlite and Neon adapters, versioned analysis prompt, deterministic mock and OpenAI providers, bounded analysis service, brief workflow APIs, atomic retries, safe request errors, linting, tests, production build, CI, and environment examples.
+- Deferred: product screens, health checks, and deployment.

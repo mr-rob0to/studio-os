@@ -18,7 +18,11 @@ describe("database environment composition", () => {
 
     await expect(
       createRepositoryFromEnvironment(
-        { DATABASE_DRIVER: "neon", DATABASE_URL: "postgresql://example" },
+        {
+          APP_ENV: "production",
+          DATABASE_DRIVER: "neon",
+          DATABASE_URL: "postgresql://example",
+        },
         { createNeonRepository, createPgliteRepository },
       ),
     ).resolves.toMatchObject({ repository });
@@ -30,6 +34,7 @@ describe("database environment composition", () => {
   it("selects the default Neon adapter without importing PGlite", async () => {
     await expect(
       createRepositoryFromEnvironment({
+        APP_ENV: "preview",
         DATABASE_DRIVER: "neon",
         DATABASE_URL: "postgresql://test_user:test_password@example.invalid/studio_os",
       }),
@@ -42,25 +47,66 @@ describe("database environment composition", () => {
 
     await expect(
       createRepositoryFromEnvironment(
-        { DATABASE_DRIVER: "neon" },
+        { APP_ENV: "preview", DATABASE_DRIVER: "neon" },
         { createNeonRepository, createPgliteRepository },
       ),
-    ).rejects.toThrow("DATABASE_URL is required when DATABASE_DRIVER=neon.");
+    ).rejects.toThrow();
 
     expect(createNeonRepository).not.toHaveBeenCalled();
     expect(createPgliteRepository).not.toHaveBeenCalled();
   });
 
-  it("fails closed before PGlite can load in preview or production", async () => {
+  it.each(["preview", "production"] as const)(
+    "fails closed before PGlite can load in %s",
+    async (appEnvironment) => {
     const createNeonRepository = vi.fn(() => repository);
     const createPgliteRepository = vi.fn();
 
     await expect(
       createRepositoryFromEnvironment(
-        { VERCEL_ENV: "production" },
+        { APP_ENV: appEnvironment, DATABASE_DRIVER: "pglite" },
         { createNeonRepository, createPgliteRepository },
       ),
-    ).rejects.toThrow("DATABASE_DRIVER must be neon in Vercel preview and production.");
+    ).rejects.toThrow();
+
+    expect(createNeonRepository).not.toHaveBeenCalled();
+    expect(createPgliteRepository).not.toHaveBeenCalled();
+    },
+  );
+
+  it("selects PGlite only from explicit local application configuration", async () => {
+    const createNeonRepository = vi.fn(() => repository);
+    const createPgliteRepository = vi.fn(async () => ({
+      repository,
+      close: vi.fn(async () => {}),
+    }));
+
+    await expect(
+      createRepositoryFromEnvironment(
+        {
+          APP_ENV: "local",
+          DATABASE_DRIVER: "pglite",
+          PGLITE_DATA_DIR: ".pglite/studio-os",
+          VERCEL_ENV: "production",
+        },
+        { createNeonRepository, createPgliteRepository },
+      ),
+    ).resolves.toMatchObject({ repository });
+
+    expect(createPgliteRepository).toHaveBeenCalledWith(".pglite/studio-os");
+    expect(createNeonRepository).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing application configuration before loading an adapter", async () => {
+    const createNeonRepository = vi.fn(() => repository);
+    const createPgliteRepository = vi.fn();
+
+    await expect(
+      createRepositoryFromEnvironment(
+        {},
+        { createNeonRepository, createPgliteRepository },
+      ),
+    ).rejects.toThrow();
 
     expect(createNeonRepository).not.toHaveBeenCalled();
     expect(createPgliteRepository).not.toHaveBeenCalled();

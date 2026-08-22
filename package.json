@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:migrate:local": "DATABASE_DRIVER=pglite NODE_OPTIONS=--conditions=react-server tsx src/server/db/migrate.ts",
+    "db:migrate:local": "APP_ENV=local DATABASE_DRIVER=pglite NODE_OPTIONS=--conditions=react-server tsx src/server/db/migrate.ts",
     "db:migrate:neon": "DATABASE_DRIVER=neon NODE_OPTIONS=--conditions=react-server tsx src/server/db/migrate.ts"
   },
   "dependencies": {
