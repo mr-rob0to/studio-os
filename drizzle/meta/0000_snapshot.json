@@ -1,0 +1,76 @@
+{
+  "id": "ad1a8251-6428-41b2-9800-a5c00f064589",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.analyses": {
+      "name": "analyses",
+      "schema": "",
+      "columns": {
+        "id": { "name": "id", "type": "uuid", "primaryKey": true, "notNull": true },
+        "brief_id": { "name": "brief_id", "type": "uuid", "primaryKey": false, "notNull": true },
+        "status": { "name": "status", "type": "varchar(16)", "primaryKey": false, "notNull": true },
+        "result": { "name": "result", "type": "jsonb", "primaryKey": false, "notNull": false },
+        "failure_code": { "name": "failure_code", "type": "varchar(32)", "primaryKey": false, "notNull": false },
+        "failure_message": { "name": "failure_message", "type": "varchar(240)", "primaryKey": false, "notNull": false },
+        "provider": { "name": "provider", "type": "varchar(24)", "primaryKey": false, "notNull": true },
+        "model": { "name": "model", "type": "varchar(80)", "primaryKey": false, "notNull": true },
+        "prompt_version": { "name": "prompt_version", "type": "varchar(24)", "primaryKey": false, "notNull": true },
+        "created_at": { "name": "created_at", "type": "timestamp with time zone", "primaryKey": false, "notNull": true },
+        "updated_at": { "name": "updated_at", "type": "timestamp with time zone", "primaryKey": false, "notNull": true }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "analyses_brief_id_briefs_id_fk": {
+          "name": "analyses_brief_id_briefs_id_fk",
+          "tableFrom": "analyses",
+          "tableTo": "briefs",
+          "columnsFrom": ["brief_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "analyses_brief_id_unique": {
+          "name": "analyses_brief_id_unique",
+          "nullsNotDistinct": false,
+          "columns": ["brief_id"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.briefs": {
+      "name": "briefs",
+      "schema": "",
+      "columns": {
+        "id": { "name": "id", "type": "uuid", "primaryKey": true, "notNull": true },
+        "title": { "name": "title", "type": "varchar(120)", "primaryKey": false, "notNull": true },
+        "description": { "name": "description", "type": "text", "primaryKey": false, "notNull": true },
+        "content_type": { "name": "content_type", "type": "text", "primaryKey": false, "notNull": true },
+        "target_audience": { "name": "target_audience", "type": "varchar(500)", "primaryKey": false, "notNull": true },
+        "notes": { "name": "notes", "type": "text", "primaryKey": false, "notNull": false },
+        "created_at": { "name": "created_at", "type": "timestamp with time zone", "primaryKey": false, "notNull": true },
+        "updated_at": { "name": "updated_at", "type": "timestamp with time zone", "primaryKey": false, "notNull": true }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": { "columns": {}, "schemas": {}, "tables": {} }
+}
