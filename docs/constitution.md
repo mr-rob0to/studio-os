@@ -129,11 +129,12 @@ Rationale: Durable repository guidance prevents the conversation from becoming h
 
 ### 11. Code Review
 
-Every non-docs pull request MUST receive one fresh independent read-only Terra review after implementation is complete.
+Every non-docs pull request MUST receive exactly one fresh independent read-only Claude Code Fable review after the pull request is open and implementation is complete.
 
 - The reviewer receives only the repository state, `origin/main` base, diff, acceptance criteria, and review checklist.
 - The review MUST cover correctness, regressions, security, concurrency, compatibility, and missing tests.
 - Critical and Important findings MUST be verified and resolved; Minor findings MUST be logged.
+- Pre-PR and per-task code reviews MUST NOT run; only a fixed Critical finding earns a focused re-review of the new commits.
 - The implementing agent MUST inspect the final diff and run the changed application path before opening the pull request.
 
 Rationale: One independent final review catches defects without multiplying review cycles.

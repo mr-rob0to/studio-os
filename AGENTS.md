@@ -6,7 +6,8 @@
 - Fetch `origin/main`, branch from that fetched ref, and never mutate the reference checkout.
 - Implement only the active approved task; explain scope expansion before changing it.
 - Run the task's complete checks, inspect the diff, and run the changed application path.
-- Obtain one fresh independent read-only Terra review for finished non-docs branches; resolve verified Critical and Important findings and log Minor findings.
+- After a non-docs PR is open and its branch is finished, obtain exactly one fresh read-only Claude Code Fable review; do not run pre-PR or task-level code reviews.
+- Resolve verified Critical and Important findings, log Minor findings, and re-review only a fixed Critical against the new commits.
 - Rebase on fresh `origin/main`, update the plan status and task checkbox, and stop before the next task.
 - Require a user scope checkpoint before adding a new capability, external service, or more than 30 minutes of unplanned work.
 
