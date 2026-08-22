@@ -6,12 +6,13 @@
 
 All changes MUST land through short-lived feature branches and pull requests into `main`, which MUST remain releasable.
 
-- Each numbered delivery-plan task MUST use a fresh session, isolated worktree, branch, and pull request.
+- Each numbered delivery-plan task MUST use a fresh session, short-lived branch, and pull request.
+- A worktree MAY be used only when genuinely parallel work requires more than one active checkout; it MUST NOT be the default for sequential tasks.
 - Branches MUST start from and be rebased on a freshly fetched `origin/main`.
 - Commits MUST use Conventional Commits and remain atomic and independently testable.
 - A task MUST update the repository plan state and stop before the next task begins.
 
-Rationale: Small, isolated changes keep review scope clear and preserve a useful delivery history.
+Rationale: Small branches keep review scope clear and preserve a useful delivery history without adding worktree overhead to sequential delivery.
 
 ### 2. Code Quality and Standards
 
@@ -159,4 +160,4 @@ This constitution is authoritative for Studio OS planning and implementation.
 - Compliance MUST be checked during planning and before a task is declared complete.
 - The active repository `AGENTS.md` remains authoritative for workflow and reviewer instructions when it is stricter.
 
-**Version**: 1.0.0 | **Ratified**: 2026-08-22 | **Last Amended**: 2026-08-22
+**Version**: 2.0.0 | **Ratified**: 2026-08-22 | **Last Amended**: 2026-08-22

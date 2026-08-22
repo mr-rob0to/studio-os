@@ -2,8 +2,9 @@
 
 - Read and follow [`docs/constitution.md`](docs/constitution.md) before planning or implementation.
 - Treat [`docs/superpowers/plans/2026-08-22-studio-os.md`](docs/superpowers/plans/2026-08-22-studio-os.md) as the live delivery state.
-- Use one fresh session, isolated worktree, branch, and pull request per numbered task.
-- Fetch `origin/main`, branch from that fetched ref, and never mutate the reference checkout.
+- Use one fresh session, short-lived branch, and pull request per numbered task.
+- Fetch `origin/main` and branch from that fetched ref in the current checkout.
+- Use a worktree only when genuinely parallel work requires more than one active checkout.
 - Implement only the active approved task; explain scope expansion before changing it.
 - Run the task's complete checks, inspect the diff, and run the changed application path.
 - After a non-docs PR is open and its branch is finished, obtain exactly one fresh read-only Claude Code Fable review; do not run pre-PR or task-level code reviews.
