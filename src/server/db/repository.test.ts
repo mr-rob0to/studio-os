@@ -7,6 +7,7 @@ import { drizzle } from "drizzle-orm/pglite";
 import { briefInputSchema } from "@/contracts";
 import { createPgliteRepository } from "@/server/db/pglite";
 import { applyPgliteMigrations } from "@/server/db/pglite";
+import { DrizzleBriefRepository } from "@/server/db/repository";
 import { briefs } from "@/server/db/schema";
 import * as schema from "@/server/db/schema";
 
@@ -57,6 +58,36 @@ describe("PGlite brief repository", () => {
           contentType: "immersive_experience",
         }).success,
       ).toBe(false);
+    } finally {
+      await client.close();
+    }
+  });
+
+  it("lists newest briefs first and orders equal timestamps by descending id", async () => {
+    const client = new PGlite();
+    const database = drizzle({ client, schema });
+    const repository = new DrizzleBriefRepository(database);
+    const oldest = "00000000-0000-4000-8000-000000000001";
+    const tiedLowerId = "00000000-0000-4000-8000-000000000002";
+    const tiedHigherId = "00000000-0000-4000-8000-000000000003";
+    const newest = "00000000-0000-4000-8000-000000000004";
+    const tiedCreatedAt = new Date("2026-08-22T12:00:00.000Z");
+
+    try {
+      await applyPgliteMigrations(database);
+      await database.insert(briefs).values([
+        { ...input, id: oldest, createdAt: new Date("2026-08-22T11:00:00.000Z"), updatedAt: tiedCreatedAt },
+        { ...input, id: tiedLowerId, createdAt: tiedCreatedAt, updatedAt: tiedCreatedAt },
+        { ...input, id: tiedHigherId, createdAt: tiedCreatedAt, updatedAt: tiedCreatedAt },
+        { ...input, id: newest, createdAt: new Date("2026-08-22T13:00:00.000Z"), updatedAt: tiedCreatedAt },
+      ]);
+
+      await expect(repository.list()).resolves.toMatchObject([
+        { id: newest },
+        { id: tiedHigherId },
+        { id: tiedLowerId },
+        { id: oldest },
+      ]);
     } finally {
       await client.close();
     }

@@ -49,7 +49,10 @@ export class DrizzleBriefRepository<TQueryResult extends PgQueryResultHKT>
   }
 
   async list(): Promise<PersistedBrief[]> {
-    const rows = await this.database.select().from(briefs).orderBy(desc(briefs.createdAt));
+    const rows = await this.database
+      .select()
+      .from(briefs)
+      .orderBy(desc(briefs.createdAt), desc(briefs.id));
 
     return rows.map(toPersistedBrief);
   }
