@@ -114,6 +114,36 @@ Mutation responses are not cached and include `X-Request-Id`. Errors use one saf
 
 The health endpoint performs a bounded read against the migrated database and does not initialize or call the AI provider.
 
+## Release flow
+
+```mermaid
+flowchart TD
+    PR[Pull request] --> PRQuality[GitHub quality gate]
+    PR --> Preview[Vercel Preview deployment]
+    PRQuality --> CleanPGlite[Clean PGlite migration and schema check]
+    CleanPGlite --> Checks[Lint, typecheck, tests, and build]
+
+    Main[Change to main] --> MainQuality[GitHub quality gate]
+    Main --> ProductionBuild[Vercel Production build]
+    MainQuality --> ProductionMigration[Production database migration]
+    ProductionMigration --> DeploymentCheck{Deployment Check passed?}
+    ProductionBuild --> DeploymentCheck
+    DeploymentCheck -->|Yes| Promote[Promote new Production deployment]
+    DeploymentCheck -->|No| Keep[Keep current Production deployment live]
+```
+
+Vercel Git integration owns Preview and Production deployments. GitHub Actions owns the quality gate and database migrations; it contains no application deployment command.
+
+Pull requests use a frozen install, apply committed migrations to a clean PGlite database, verify that the Drizzle schema has matching committed migration history, then run lint, typecheck, the full test suite, and a production build. This validates migration files without production credentials.
+
+Every update to `main` repeats that complete quality gate. The stable `Production database migration` job then enters the branch-restricted GitHub `production` environment and runs the idempotent migration command against Neon. Idempotent means an already-applied migration is safely skipped.
+
+Vercel requires `Production database migration` as a [Deployment Check](https://vercel.com/docs/deployment-checks). Vercel can build at the same time as GitHub Actions, but it promotes the build only when that check passes. A failed migration therefore leaves the previous Production deployment live. There is no automatic database rollback; recovery uses a compatible forward migration.
+
+GitHub stores only the protected production `DATABASE_URL` used by the migration job. Vercel separately stores runtime `DATABASE_URL`, `OPENAI_API_KEY`, `APP_ENV`, `DATABASE_DRIVER`, and provider settings for Preview and Production.
+
+Preview CI validates migrations against clean PGlite. The release does not automate Preview Neon migrations, create a database service per pull request, or create per-pull-request database branches. An operator applies committed migrations to the shared Preview database before testing a preview that needs new schema.
+
 ## Add a field to a brief
 
 Use this order so the contract, database, AI input, and UI stay aligned:

@@ -11,10 +11,11 @@ permissions:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   quality:
+    name: Quality gate
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -42,6 +43,9 @@ jobs:
           PGLITE_DATA_DIR: ${{ runner.temp }}/studio-os-migration-check
         run: pnpm db:migrate
 
+      - name: Verify migration consistency
+        run: pnpm db:migrations:check
+
       - name: Lint
         run: pnpm lint
 
@@ -53,3 +57,35 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+  production-migration:
+    name: Production database migration
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply production migrations
+        env:
+          APP_ENV: production
+          DATABASE_DRIVER: neon
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: pnpm db:migrate
