@@ -80,6 +80,7 @@ For AI analysis, set `AI_PROVIDER=mock` or `AI_PROVIDER=openai`. OpenAI also req
 | --- | --- |
 | `pnpm dev` | Start the local development server |
 | `pnpm db:migrate` | Apply committed migrations for the configured environment |
+| `pnpm db:migrations:check` | Verify the Drizzle schema matches committed migration history |
 | `pnpm lint` | Run ESLint |
 | `pnpm typecheck` | Check strict TypeScript |
 | `pnpm test` | Run the Vitest suite once |
@@ -97,6 +98,38 @@ For AI analysis, set `AI_PROVIDER=mock` or `AI_PROVIDER=openai`. OpenAI also req
 
 See [Architecture](docs/ARCHITECTURE.md) for the data flow, schema, contracts, and field-change guide.
 
+## Deployment and database migrations
+
+Vercel Git integration owns application deployments. A pull request creates a Preview deployment, and a change to `main` creates a Production build. GitHub Actions never deploys the application.
+
+For pull requests and `main`, GitHub Actions installs the locked dependencies, applies every committed migration to a clean PGlite database, checks that the Drizzle schema matches the migration history, then runs lint, typecheck, the full test suite, and a production build.
+
+After the quality gate passes on `main`, the `Production database migration` job runs `pnpm db:migrate` against Neon. The job uses the protected GitHub `production` environment and its `DATABASE_URL` secret. It runs on every `main` update; migrations already recorded by Drizzle are safely skipped.
+
+Vercel must require `Production database migration` as a [Deployment Check](https://vercel.com/docs/deployment-checks). A deployment check is a release gate: Vercel may build the new version while GitHub Actions runs, but it keeps the current Production deployment live unless the migration job succeeds.
+
+Configure the platforms as follows:
+
+| Platform scope | Required settings |
+| --- | --- |
+| GitHub `production` environment | Restrict deployments to `main`; store only the production Neon `DATABASE_URL` secret |
+| Vercel Preview | `APP_ENV=preview`, `DATABASE_DRIVER=neon`, runtime `DATABASE_URL`, `AI_PROVIDER`, and provider settings |
+| Vercel Production | `APP_ENV=production`, `DATABASE_DRIVER=neon`, runtime `DATABASE_URL`, `AI_PROVIDER`, and provider settings |
+
+Keep `OPENAI_API_KEY` and every database URL server-only. Do not add a `NEXT_PUBLIC_` prefix. GitHub and Vercel keep separate copies of the production database URL because the migration job and the running application have different owners.
+
+Complete the one-time platform setup in this order:
+
+1. Import the `mr-rob0to/studio-os` GitHub repository into Vercel and keep Git deployments enabled.
+2. Add the Preview and Production runtime settings from the table above to the Vercel project.
+3. In the Vercel Production environment, keep automatic production aliasing enabled.
+4. Add `Production database migration` as the required Deployment Check.
+5. In the GitHub `production` environment, select only the `main` branch and add the production Neon `DATABASE_URL` secret.
+
+Pull requests validate migrations with clean PGlite only. This release does not create a Neon database branch per pull request and does not migrate Preview Neon automatically. Apply committed migrations to the shared Preview database through an approved operator process before testing a preview that depends on new schema.
+
+If a production migration fails, the stable GitHub check fails and Vercel keeps the previous deployment live. Neon HTTP cannot wrap a whole migration file in one transaction, so a failure can leave part of the file applied before Drizzle records it. Inspect the production schema and migration logs through the protected operator tools, reconcile partial changes with a compatible forward fix, and rerun only after the current schema is known. Do not edit committed migration history or automatically roll the database back. Migrations must remain compatible with the current Production application because Vercel can finish its build before the database gate completes.
+
 ## Key trade-offs
 
 1. The app completes AI analysis before it finishes the submit or retry request. This keeps the workflow simple, but there is no background queue for longer-running analysis.
@@ -109,7 +142,7 @@ See [Architecture](docs/ARCHITECTURE.md) for the data flow, schema, contracts, a
 - Brief editing or deletion
 - Uploads, comments, collaboration, or analysis history
 - Background jobs, model routing, provider fallback, or external monitoring
-- Deployment automation or a separate public API
+- A separate public API
 
 
 ## Future enhancements
@@ -121,7 +154,7 @@ See [Architecture](docs/ARCHITECTURE.md) for the data flow, schema, contracts, a
 - Add real-time collaboration for multiple users.
 - Add brief editing with version history and explicit analysis invalidation rules.
 - Move long-running analysis to background jobs with progress and operational monitoring.
-- Add production release automation, deployment verification, and rollback guidance.
+- Add richer deployment monitoring and automated rollback analysis.
 
 ## AI assistance
 

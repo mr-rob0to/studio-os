@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:migrate": "NODE_OPTIONS=--conditions=react-server tsx src/server/db/migrate.ts"
+    "db:migrate": "NODE_OPTIONS=--conditions=react-server tsx src/server/db/migrate.ts",
+    "db:migrations:check": "NODE_OPTIONS=--conditions=react-server drizzle-kit check && NODE_OPTIONS=--conditions=react-server drizzle-kit generate --name ci_schema_check && test -z \"$(git status --porcelain --untracked-files=all -- drizzle)\""
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.6",
