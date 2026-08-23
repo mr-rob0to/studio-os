@@ -111,18 +111,23 @@ See [Architecture](docs/ARCHITECTURE.md) for the data flow, schema, contracts, a
 - Background jobs, model routing, provider fallback, or external monitoring
 - Deployment automation or a separate public API
 
-These are product and operational boundaries, not incomplete hidden flows.
 
 ## Future enhancements
 
 - Add authentication and role-based access before use outside a trusted internal team.
+- Add ways to measure and improve AI analysis quality.
+- Add file uploads.
+- Connect Slack, Jira, and Google Drive for notifications and workflow automation.
+- Add real-time collaboration for multiple users.
 - Add brief editing with version history and explicit analysis invalidation rules.
 - Move long-running analysis to background jobs with progress and operational monitoring.
 - Add production release automation, deployment verification, and rollback guidance.
 
 ## AI assistance
 
-AI helped draft the delivery plan, implementation, tests, code review, and documentation. The maintainer set the product scope and architecture constraints, requested the single environment-aware migration command, replaced over-detailed internal documentation with contributor-focused guidance, and made the final acceptance decisions.
+AI helped draft the delivery plan, implementation, tests, code review, and documentation. I set the product scope and architecture constraints. I also used established agent workflows for specification-driven development, project standards, test-first development, and independent AI code reviews.
+
+I consistently guided the AI away from unnecessary complexity and toward clear, developer-friendly documentation. I personally performed the final review for every pull request.
 
 ## Documentation
 
