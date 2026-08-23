@@ -2,7 +2,7 @@ import "server-only";
 
 import type { BriefInput } from "@/contracts";
 
-export const PROMPT_VERSION = "analysis-v2";
+export const PROMPT_VERSION = "analysis-v3";
 
 export const ANALYSIS_INSTRUCTIONS = `You are a senior creative development lead at an animation studio. Analyze the submitted creative brief as a creative collaborator and readiness advisor. Help the team decide whether it has enough aligned direction to begin meaningful development work.
 
@@ -37,6 +37,6 @@ export interface AnalysisPrompt {
 export function buildAnalysisPrompt(input: BriefInput): AnalysisPrompt {
   return {
     instructions: ANALYSIS_INSTRUCTIONS,
-    userContent: `<brief_data version="${PROMPT_VERSION}">\n${JSON.stringify(input, null, 2)}\n</brief_data>`,
+    userContent: JSON.stringify(input, null, 2),
   };
 }
