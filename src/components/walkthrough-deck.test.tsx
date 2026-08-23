@@ -114,4 +114,21 @@ describe("WalkthroughDeck", () => {
       screen.getByRole("heading", { name: "WHAT I WOULD ADD NEXT" }),
     ).toBeVisible();
   });
+
+  it("moves focus to the new slide after visible control navigation", () => {
+    renderDeck();
+
+    fireEvent.click(screen.getByRole("button", { name: "Next slide" }));
+    expect(screen.getByRole("group", { name: "TECH STACK + FLOW" })).toHaveFocus();
+
+    fireEvent.click(screen.getByRole("button", { name: "Previous slide" }));
+    expect(screen.getByRole("group", { name: "THE PROBLEM" })).toHaveFocus();
+
+    for (let index = 0; index < 5; index += 1) {
+      fireEvent.keyDown(window, { key: "ArrowRight" });
+    }
+
+    fireEvent.click(screen.getByRole("button", { name: "Next slide" }));
+    expect(screen.getByRole("group", { name: "DEMO" })).toHaveFocus();
+  });
 });

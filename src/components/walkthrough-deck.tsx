@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import styles from "@/app/walkthrough/walkthrough.module.css";
 
@@ -90,7 +90,7 @@ function renderSlideContent(slide: Slide) {
         <div className={styles.aiRows}>
           <div className={styles.contentRow}><p>Provider</p><p>OpenAI</p></div>
           <div className={styles.contentRow}><p>Current default model</p><p className={styles.monospace}>gpt-4o-mini</p></div>
-          <div className={styles.contentRow}><p>Structured output</p><p>The model returns the fields the product expects.</p></div>
+          <div className={styles.contentRow}><p>Structured Outputs</p><p>The model returns the fields the product expects.</p></div>
           <div className={styles.contentRow}><p><span className={styles.monospace}>Zod</span> validation</p><p>The app checks the output before saving or showing it.</p></div>
           <div className={`${styles.contentRow} ${styles.successRow}`}><p>Why it matters</p><p>Users get actionable, consistent recommendations, risks, and next steps.</p></div>
           <div className={`${styles.contentRow} ${styles.failureRow}`}><p>Invalid output</p><p>Becomes a retryable error.</p></div>
@@ -121,11 +121,18 @@ function renderSlideContent(slide: Slide) {
 
 export function WalkthroughDeck() {
   const [activeSlide, setActiveSlide] = useState(0);
+  const focusAfterControlNavigation = useRef(false);
+  const slideRef = useRef<HTMLElement>(null);
   const active = slides[activeSlide];
   const isDemo = active.kind === "demo";
 
   function moveTo(nextSlide: number) {
     setActiveSlide(Math.min(Math.max(nextSlide, 0), slides.length - 1));
+  }
+
+  function moveFromControl(nextSlide: number) {
+    focusAfterControlNavigation.current = true;
+    moveTo(nextSlide);
   }
 
   function handleKeyDown(event: KeyboardEvent) {
@@ -156,6 +163,15 @@ export function WalkthroughDeck() {
   }
 
   useEffect(() => {
+    if (!focusAfterControlNavigation.current) {
+      return;
+    }
+
+    slideRef.current?.focus();
+    focusAfterControlNavigation.current = false;
+  }, [activeSlide]);
+
+  useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
@@ -177,15 +193,15 @@ export function WalkthroughDeck() {
         </div>
       ) : null}
       <div className={`${styles.stage} ${isDemo ? styles.demoStage : ""}`}>
-        <section aria-labelledby="walkthrough-slide-title" aria-roledescription="slide" className={styles.slide} key={active.title} role="group">
+        <section aria-labelledby="walkthrough-slide-title" aria-roledescription="slide" className={styles.slide} key={active.title} ref={slideRef} role="group" tabIndex={-1}>
           <h1 id="walkthrough-slide-title" className={isDemo ? styles.demoTitle : styles.title}>{active.title}</h1>
           {renderSlideContent(active)}
         </section>
       </div>
       {!isDemo ? (
         <div className={styles.controls}>
-          <button aria-label="Previous slide" disabled={activeSlide === 0} onClick={() => moveTo(activeSlide - 1)} type="button">Previous</button>
-          <button aria-label="Next slide" disabled={activeSlide === slides.length - 1} onClick={() => moveTo(activeSlide + 1)} type="button">Next</button>
+          <button aria-label="Previous slide" disabled={activeSlide === 0} onClick={() => moveFromControl(activeSlide - 1)} type="button">Previous</button>
+          <button aria-label="Next slide" disabled={activeSlide === slides.length - 1} onClick={() => moveFromControl(activeSlide + 1)} type="button">Next</button>
         </div>
       ) : null}
     </div>
