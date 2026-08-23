@@ -50,6 +50,19 @@ Open [http://localhost:3000](http://localhost:3000). The internal app sends the 
 - Provider timeout, refusal, failure, and malformed output remain stored as safe failed analysis records so the brief is never lost.
 - Errors use one JSON envelope with a request ID. Database failures, provider responses, credentials, and submitted brief content are never returned.
 
+## Health endpoint
+
+- `GET /api/health` queries the configured database and returns `200 {"status":"healthy","database":"ready"}` only when the migrated briefs table is ready.
+- Database configuration, connection, query, and close work share a two-second budget. Any failure or timeout returns `503 {"status":"degraded","database":"unavailable"}`.
+- Every response uses `Cache-Control: no-store`; the endpoint never creates or invokes an analysis provider or model.
+- Responses contain no database errors, credentials, paths, queries, stack traces, provider details, or other internals.
+
+Check local readiness after starting the app:
+
+```bash
+curl -i http://localhost:3000/api/health
+```
+
 ## Commands
 
 ```bash
@@ -79,5 +92,5 @@ CI runs the frozen install, lint, typecheck, test, and production build commands
 
 ## Current scope
 
-- Included: accessible app shell, brief list and submission screens, strict TypeScript, shared Zod contracts, PostgreSQL persistence, PGlite and Neon adapters, versioned analysis prompt, deterministic mock and OpenAI providers, bounded analysis service, brief workflow APIs, atomic retries, safe request errors, linting, tests, production build, CI, and environment examples.
-- Deferred: brief detail and retry screens, health checks, and deployment.
+- Included: accessible brief list, submission, detail, analysis, and retry screens; strict TypeScript; shared Zod contracts; PostgreSQL persistence; PGlite and Neon adapters; versioned analysis prompt; deterministic mock and OpenAI providers; bounded analysis service; brief workflow APIs; atomic retries; database-aware health checks; safe request errors; linting; tests; production build; CI; and environment examples.
+- Deferred: architecture and ownership documentation, CI-owned production release, and production verification.
