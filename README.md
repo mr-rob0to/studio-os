@@ -1,96 +1,135 @@
 # Studio OS
 
-Studio OS is an internal animation-studio brief application. It provides a brief board and submission interface backed by shared contracts, PostgreSQL persistence, server-only structured analysis providers, and create and retry workflow endpoints.
+Studio OS is an internal animation-studio brief application. A teammate submits a creative brief, the application saves it, an AI provider returns a structured readiness review, and the team can read the result or retry a failed analysis.
 
-## Prerequisites
+The application includes a brief board, a submission form, brief detail and analysis views, safe retry behavior, and a database health endpoint.
+
+## Local setup
+
+### Prerequisites
 
 - Node.js 22
 - pnpm 10.33.0
+- Git
 
-Enable the package manager bundled with Node.js:
-
-```bash
-corepack enable
-```
-
-## Local setup
+From a clean clone:
 
 ```bash
 git clone https://github.com/mr-rob0to/studio-os.git
 cd studio-os
+corepack enable
 pnpm install --frozen-lockfile
 cp .env.example .env.local
-pnpm db:migrate:local
+pnpm db:migrate
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The internal app sends the root route directly to the brief board at `/briefs`; the submission form is at `/briefs/new`.
+Open [http://localhost:3000](http://localhost:3000). The root route redirects to `/briefs`.
 
-## Database environments
+The copied environment uses file-backed PGlite and a deterministic mock AI provider. `.env.local` and local database files under `.pglite/` are ignored by Git and must not be committed.
 
-- Set `APP_ENV=local|test|preview|production` and `DATABASE_DRIVER=pglite|neon` explicitly; missing or invalid values fail closed.
-- Local development uses `APP_ENV=local`, `DATABASE_DRIVER=pglite`, and writes only to `PGLITE_DATA_DIR`.
-- Tests create a fresh in-memory PGlite database and apply the same committed migration.
-- Preview and production require `DATABASE_DRIVER=neon` plus a server-only `DATABASE_URL`; application configuration rejects PGlite before its adapter can load. Hosting configuration must map provider-specific deployment state to `APP_ENV` outside the application runtime.
-- Put database credentials in an ignored `.env.local` locally or in sensitive deployment configuration, never in `NEXT_PUBLIC_` variables.
-- Apply the same committed migration to Neon with `APP_ENV=preview pnpm db:migrate:neon` or `APP_ENV=production pnpm db:migrate:neon`. This command requires `DATABASE_URL`; it does not use `drizzle-kit push`.
-
-## Analysis providers
-
-- Set `AI_PROVIDER=mock` for deterministic local analysis without credentials, or `AI_PROVIDER=openai` for the OpenAI Responses API.
-- OpenAI mode requires a server-only `OPENAI_API_KEY`; never expose it through a `NEXT_PUBLIC_` variable.
-- `OPENAI_MODEL` defaults to `gpt-4o-mini`, and `AI_TIMEOUT_MS` defaults to 12000 when omitted.
-- `MOCK_AI_MODE=success|timeout|malformed` provides explicit local failure verification. OpenAI failures never fall back to mock output.
-- Provider output remains untrusted until the analysis service parses it with the shared Zod contract.
-
-## Mutation endpoints
-
-- `POST /api/briefs` requires `application/json`, enforces a 16 KiB body limit, validates the brief, persists the brief and pending analysis, then runs the configured provider.
-- `POST /api/briefs/{id}/analysis` requires a valid brief UUID and an empty body. It retries a failed analysis, rejects active concurrent work, and reclaims pending work older than `AI_TIMEOUT_MS + 5 seconds`.
-- Provider timeout, refusal, failure, and malformed output remain stored as safe failed analysis records so the brief is never lost.
-- Errors use one JSON envelope with a request ID. Database failures, provider responses, credentials, and submitted brief content are never returned.
-
-## Health endpoint
-
-- `GET /api/health` queries the configured database and returns `200 {"status":"healthy","database":"ready"}` only when the migrated briefs table is ready.
-- Database configuration, connection, query, and close work share a two-second budget. Any failure or timeout returns `503 {"status":"degraded","database":"unavailable"}`.
-- Every response uses `Cache-Control: no-store`; the endpoint never creates or invokes an analysis provider or model.
-- Responses contain no database errors, credentials, paths, queries, stack traces, provider details, or other internals.
-
-Check local readiness after starting the app:
+Confirm the database is ready:
 
 ```bash
-curl -i http://localhost:3000/api/health
+curl --fail --show-error http://localhost:3000/api/health
 ```
+
+Expected response:
+
+```json
+{"status":"healthy","database":"ready"}
+```
+
+### Environment selection
+
+| Environment | Database settings | Database |
+| --- | --- | --- |
+| Local | `APP_ENV=local`, `DATABASE_DRIVER=pglite`, optional `PGLITE_DATA_DIR` | PGlite |
+| Test | `APP_ENV=test`, `DATABASE_DRIVER=pglite` | Fresh in-memory PGlite |
+| Preview | `APP_ENV=preview`, `DATABASE_DRIVER=neon`, `DATABASE_URL` | Neon HTTP |
+| Production | `APP_ENV=production`, `DATABASE_DRIVER=neon`, `DATABASE_URL` | Neon HTTP |
+
+Use the same migration command in every environment:
+
+```bash
+pnpm db:migrate
+```
+
+The command loads the environment, validates the environment and driver combination, then applies the committed migrations through PGlite or Neon. PGlite is rejected in preview and production. Neon requires a server-only `DATABASE_URL`.
+
+For AI analysis, set `AI_PROVIDER=mock` or `AI_PROVIDER=openai`. OpenAI also requires a server-only `OPENAI_API_KEY`. The local example uses `MOCK_AI_MODE=success`; `malformed` and `timeout` exercise recoverable failure states.
+
+## Project structure
+
+| Path | Contents |
+| --- | --- |
+| `src/app/briefs/` | Brief board, new-brief page, and brief detail page |
+| `src/app/api/` | Create, retry, and health Route Handlers |
+| `src/components/` | Interactive form and retry controls plus brief presentation components |
+| `src/contracts.ts` | Zod schemas for brief input, stored records, analysis output, and API errors |
+| `src/server/briefs/` | Brief workflow, retry rules, runtime composition, and read services |
+| `src/server/analysis/` | AI provider interface, prompt, adapters, timeout, and output parsing |
+| `src/server/db/` | Drizzle repository, PGlite and Neon adapters, migrations, and health check |
+| `src/server/http/` | Request validation and safe HTTP response mapping |
+| `drizzle/` | Committed PostgreSQL migration history shared by PGlite and Neon |
+| `docs/` | Architecture, engineering standards, and delivery plan |
 
 ## Commands
 
-```bash
-pnpm dev        # start the local development server
-pnpm lint       # run ESLint
-pnpm typecheck  # check strict TypeScript
-pnpm test       # run the Vitest suite once
-pnpm build      # create the production build
-pnpm start      # serve the production build
-pnpm db:migrate:local # apply committed migrations to local PGlite
-pnpm db:migrate:neon  # apply the same migrations to Neon
-```
+| Command | Purpose |
+| --- | --- |
+| `pnpm dev` | Start the local development server |
+| `pnpm db:migrate` | Apply committed migrations for the configured environment |
+| `pnpm lint` | Run ESLint |
+| `pnpm typecheck` | Check strict TypeScript |
+| `pnpm test` | Run the Vitest suite once |
+| `pnpm test:watch` | Run Vitest in watch mode |
+| `pnpm build` | Create a production build |
+| `pnpm start` | Serve an existing production build |
 
-CI runs the frozen install, lint, typecheck, test, and production build commands for every pull request into `main`.
+## API Endpoints
 
-## Accessibility and browser support
+| Method and path | Purpose |
+| --- | --- |
+| `POST /api/briefs` | Validate, save, and analyze a new brief |
+| `POST /api/briefs/{id}/analysis` | Retry a failed or stale analysis |
+| `GET /api/health` | Check database readiness without calling the AI provider |
 
-- The brief board and submission form use semantic headings, labels, field-level errors, live status messages, visible keyboard focus, and a skip link.
-- Keyboard-only use is supported for navigation, form entry, validation recovery, and submission.
-- Layouts adapt from a two-column desktop presentation to a single-column mobile flow, and motion respects `prefers-reduced-motion`.
-- The supported baseline is the current and previous major versions of Chrome, Edge, Firefox, and Safari.
+See [Architecture](docs/ARCHITECTURE.md) for the data flow, schema, contracts, and field-change guide.
 
-## Project guidance
+## Key trade-offs
 
-- Engineering standards: [`docs/constitution.md`](docs/constitution.md)
-- Approved delivery plan: [`docs/superpowers/plans/2026-08-22-studio-os.md`](docs/superpowers/plans/2026-08-22-studio-os.md)
+1. The app completes AI analysis before it finishes the submit or retry request. This keeps the workflow simple, but there is no background queue for longer-running analysis.
+2. The pages and backend API live in the same Next.js app. This is simpler for a first version, but a larger product would likely separate the client and backend so they can be changed and released independently.
+3. Each brief has one analysis record that is updated when analysis is retried. This keeps the first version simple, but past analysis runs are not kept as permanent records, so there is no history or reporting across runs.
 
-## Current scope
+## Intentionally not built
 
-- Included: accessible brief list, submission, detail, analysis, and retry screens; strict TypeScript; shared Zod contracts; PostgreSQL persistence; PGlite and Neon adapters; versioned analysis prompt; deterministic mock and OpenAI providers; bounded analysis service; brief workflow APIs; atomic retries; database-aware health checks; safe request errors; linting; tests; production build; CI; and environment examples.
-- Deferred: architecture and ownership documentation, CI-owned production release, and production verification.
+- Authentication or authorization
+- Brief editing or deletion
+- Uploads, comments, collaboration, or analysis history
+- Background jobs, model routing, provider fallback, or external monitoring
+- Deployment automation or a separate public API
+
+
+## Future enhancements
+
+- Add authentication and role-based access before use outside a trusted internal team.
+- Add ways to measure and improve AI analysis quality.
+- Add file uploads.
+- Connect Slack, Jira, and Google Drive for notifications and workflow automation.
+- Add real-time collaboration for multiple users.
+- Add brief editing with version history and explicit analysis invalidation rules.
+- Move long-running analysis to background jobs with progress and operational monitoring.
+- Add production release automation, deployment verification, and rollback guidance.
+
+## AI assistance
+
+AI helped draft the delivery plan, implementation, tests, code review, and documentation. I set the product scope and architecture constraints. I also used established agent workflows for specification-driven development, project standards, test-first development, and independent AI code reviews.
+
+I consistently guided the AI away from unnecessary complexity and toward clear, developer-friendly documentation. I personally performed the final review for every pull request.
+
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md): system flow, schema, endpoints, and safe extension steps.
+- [Engineering constitution](docs/constitution.md): binding development and delivery standards.
