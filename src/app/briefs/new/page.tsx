@@ -15,15 +15,19 @@ export default function NewBriefPage() {
         <Link className="wordmark" href="/briefs" aria-label="Studio OS briefs">
           Studio <span>OS</span>
         </Link>
-        <Link className="text-link" href="/briefs">
-          Back to briefs
-        </Link>
       </header>
 
-      <section className="page-heading form-heading" aria-labelledby="page-title">
-        <p className="eyebrow">New project frame</p>
+      <section className="form-context" aria-labelledby="page-title">
+        <nav aria-label="Breadcrumb">
+          <ol className="breadcrumb-list">
+            <li>
+              <Link href="/briefs">Briefs</Link>
+            </li>
+            <li aria-current="page">New brief</li>
+          </ol>
+        </nav>
         <h1 id="page-title">Create a creative brief</h1>
-        <p className="lede">
+        <p>
           Give the team enough direction to assess the idea and decide the next
           useful step.
         </p>

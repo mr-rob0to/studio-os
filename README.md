@@ -24,7 +24,7 @@ pnpm db:migrate:local
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000), then use the brief board at `/briefs` and the submission form at `/briefs/new`.
+Open [http://localhost:3000](http://localhost:3000). The internal app sends the root route directly to the brief board at `/briefs`; the submission form is at `/briefs/new`.
 
 ## Database environments
 

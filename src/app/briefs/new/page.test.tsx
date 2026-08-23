@@ -1,23 +1,29 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
-}));
+import { render, screen, within } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 
 import NewBriefPage from "./page";
 
 describe("NewBriefPage", () => {
-  it("renders the accessible submission page and a path back to the list", () => {
+  it("places brief context in a compact breadcrumb above the form", () => {
     render(<NewBriefPage />);
 
-    expect(
-      screen.getByRole("heading", { level: 1, name: "Create a creative brief" }),
-    ).toBeVisible();
-    expect(screen.getByRole("form", { name: "New creative brief" })).toBeVisible();
-    expect(screen.getByRole("link", { name: "Back to briefs" })).toHaveAttribute(
+    const breadcrumb = screen.getByRole("navigation", { name: "Breadcrumb" });
+
+    expect(breadcrumb).toBeVisible();
+    expect(within(breadcrumb).getByRole("link", { name: "Briefs" })).toHaveAttribute(
       "href",
       "/briefs",
     );
+    expect(within(breadcrumb).getByText("New brief")).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Create a creative brief" }),
+    ).toBeVisible();
+    expect(
+      screen.getByText(/Give the team enough direction/),
+    ).toBeVisible();
+    expect(screen.getByRole("form", { name: "New creative brief" })).toBeVisible();
   });
 });

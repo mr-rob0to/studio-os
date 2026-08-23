@@ -206,28 +206,6 @@ export function BriefForm() {
         ) : null}
       </div>
 
-      <div className="form-field form-field-wide">
-        <label htmlFor="brief-description">Brief description</label>
-        <textarea
-          aria-describedby={
-            fieldErrors.description ? "brief-description-error" : undefined
-          }
-          aria-invalid={fieldErrors.description ? "true" : undefined}
-          id="brief-description"
-          maxLength={2_000}
-          name="description"
-          onChange={(event) => updateValue("description", event.target.value)}
-          required
-          rows={7}
-          value={values.description}
-        />
-        {fieldErrors.description ? (
-          <p className="field-error" id="brief-description-error">
-            {fieldErrors.description}
-          </p>
-        ) : null}
-      </div>
-
       <div className="form-field">
         <label htmlFor="brief-content-type">Content type</label>
         <select
@@ -252,6 +230,28 @@ export function BriefForm() {
         {fieldErrors.contentType ? (
           <p className="field-error" id="brief-content-type-error">
             {fieldErrors.contentType}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="form-field form-field-wide">
+        <label htmlFor="brief-description">Brief description</label>
+        <textarea
+          aria-describedby={
+            fieldErrors.description ? "brief-description-error" : undefined
+          }
+          aria-invalid={fieldErrors.description ? "true" : undefined}
+          id="brief-description"
+          maxLength={2_000}
+          name="description"
+          onChange={(event) => updateValue("description", event.target.value)}
+          required
+          rows={7}
+          value={values.description}
+        />
+        {fieldErrors.description ? (
+          <p className="field-error" id="brief-description-error">
+            {fieldErrors.description}
           </p>
         ) : null}
       </div>
