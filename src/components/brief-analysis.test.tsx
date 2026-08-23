@@ -76,7 +76,9 @@ describe("BriefAnalysisPanel", () => {
     expect(screen.getByRole("heading", { name: "Strengths" })).toBeVisible();
     expect(screen.getByText("Community")).toBeVisible();
     expect(screen.getByText("Confirm the intended audience response")).toBeVisible();
-    expect(screen.getByText("Creative lead")).toBeVisible();
+    const ownerLabel = screen.getByText("Owner", { selector: "dt" });
+    expect(ownerLabel).toBeVisible();
+    expect(ownerLabel.nextElementSibling).toHaveTextContent("Creative lead");
     expect(screen.queryByText("secret-model-name")).not.toBeInTheDocument();
     expect(screen.queryByText("openai")).not.toBeInTheDocument();
   });

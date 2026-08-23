@@ -113,8 +113,13 @@ export function BriefAnalysisPanel({ detail }: { detail: BriefDetail }) {
             {result.nextActions.map((nextAction) => (
               <li key={`${nextAction.owner}-${nextAction.action}`}>
                 <p>{nextAction.action}</p>
-                <div>
-                  <span>{ownerLabels[nextAction.owner]}</span>
+                <div className="next-action-meta">
+                  <dl className="next-action-owner">
+                    <div>
+                      <dt>Owner</dt>
+                      <dd>{ownerLabels[nextAction.owner]}</dd>
+                    </div>
+                  </dl>
                   <span className={`priority priority-${nextAction.priority}`}>
                     {capitalize(nextAction.priority)} priority
                   </span>

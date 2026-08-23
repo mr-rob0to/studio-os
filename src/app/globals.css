@@ -746,7 +746,7 @@ h1 {
   font-size: 0.84rem;
 }
 
-.next-actions-list li > div {
+.next-action-meta {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
@@ -755,6 +755,22 @@ h1 {
   font-size: 0.62rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.next-action-owner,
+.next-action-owner > div {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.next-action-owner dt {
+  color: var(--yellow);
+}
+
+.next-action-owner dd {
+  margin: 0;
 }
 
 .priority {
@@ -885,7 +901,7 @@ h1 {
     grid-template-columns: 2rem minmax(0, 1fr);
   }
 
-  .next-actions-list li > div {
+  .next-action-meta {
     grid-column: 2;
     justify-content: flex-start;
   }
