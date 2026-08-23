@@ -20,17 +20,22 @@ export default async function BriefsPage() {
         <Link className="wordmark" href="/briefs" aria-label="Studio OS briefs">
           Studio <span>OS</span>
         </Link>
+      </header>
+
+      <section
+        className="workspace-context workspace-context-board"
+        aria-labelledby="page-title"
+      >
+        <div>
+          <p className="context-label">Brief board</p>
+          <h1 id="page-title">Creative briefs</h1>
+        </div>
+        <p>
+          Review briefs and start the next one when a project needs direction.
+        </p>
         <Link className="button-link button-link-small" href="/briefs/new">
           New brief
         </Link>
-      </header>
-
-      <section className="page-heading" aria-labelledby="page-title">
-        <p className="eyebrow">Creative development workspace</p>
-        <h1 id="page-title">Creative briefs</h1>
-        <p className="lede">
-          Review the ideas on the board or start a new brief for analysis.
-        </p>
       </section>
 
       <BriefList briefs={briefs} />

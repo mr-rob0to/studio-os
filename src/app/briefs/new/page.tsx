@@ -17,7 +17,10 @@ export default function NewBriefPage() {
         </Link>
       </header>
 
-      <section className="form-context" aria-labelledby="page-title">
+      <section
+        className="workspace-context workspace-context-form"
+        aria-labelledby="page-title"
+      >
         <nav aria-label="Breadcrumb">
           <ol className="breadcrumb-list">
             <li>

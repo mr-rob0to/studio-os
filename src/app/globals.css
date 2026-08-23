@@ -87,7 +87,7 @@ textarea:focus-visible {
 }
 
 .masthead {
-  min-height: 5.75rem;
+  min-height: 4.25rem;
   border-bottom: 1px solid var(--line);
 }
 
@@ -99,7 +99,7 @@ textarea:focus-visible {
 .wordmark {
   color: var(--white);
   font-family: var(--display);
-  font-size: 2.1rem;
+  font-size: 1.8rem;
   letter-spacing: 0.055em;
   line-height: 1;
   text-decoration: none;
@@ -111,8 +111,7 @@ textarea:focus-visible {
 }
 
 .eyebrow,
-.collection-count,
-.brief-meta {
+.collection-count {
   color: var(--yellow);
   font-size: 0.75rem;
   font-weight: 600;
@@ -125,78 +124,64 @@ textarea:focus-visible {
 }
 
 h1 {
-  max-width: 12ch;
   margin: 0;
   font-family: var(--display);
-  font-size: clamp(4.5rem, 10vw, 9rem);
+  font-size: clamp(1.9rem, 3vw, 2.6rem);
   font-weight: 400;
   letter-spacing: 0.01em;
-  line-height: 0.92;
+  line-height: 1;
   text-wrap: balance;
 }
 
-.lede {
-  max-width: 45rem;
-  margin: 2rem 0 0;
-  color: var(--white-muted);
-  font-size: clamp(1rem, 1.8vw, 1.2rem);
-  font-weight: 300;
-  line-height: 1.8;
-}
-
-.frame-number {
-  color: var(--yellow);
-  font-family: var(--utility);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-}
-
 .footer {
-  min-height: 6rem;
+  min-height: 4.5rem;
   color: var(--white-dim);
   font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.page-heading {
-  padding: clamp(5rem, 10vw, 9rem) 0 clamp(3rem, 6vw, 5rem);
-}
-
-.page-heading h1 {
-  max-width: 11ch;
-  font-size: clamp(4.25rem, 9vw, 8rem);
-}
-
-.page-heading .lede {
-  max-width: 38rem;
-  margin-top: 1.5rem;
-}
-
-.form-context {
+.workspace-context {
   display: grid;
-  grid-template-columns:
-    minmax(10rem, 0.55fr) minmax(16rem, 0.8fr) minmax(20rem, 1.25fr);
   align-items: center;
-  gap: 1.25rem clamp(1.5rem, 4vw, 4rem);
-  padding: 1.4rem 0;
+  gap: 1rem clamp(1.5rem, 4vw, 3rem);
+  padding: 1rem 0;
   border-bottom: 1px solid var(--line);
 }
 
-.form-context h1 {
-  max-width: none;
-  font-size: clamp(2rem, 3.4vw, 3.25rem);
-  line-height: 1;
+.workspace-context-form {
+  grid-template-columns:
+    minmax(10rem, 0.55fr) minmax(16rem, 0.8fr) minmax(20rem, 1.25fr);
 }
 
-.form-context > p {
+.workspace-context-board {
+  grid-template-columns: minmax(15rem, 0.8fr) minmax(20rem, 1.2fr) auto;
+}
+
+.workspace-context h1 {
+  max-width: none;
+}
+
+.workspace-context > p {
   max-width: 40rem;
   margin: 0;
   color: var(--white-muted);
-  font-size: 0.9rem;
+  font-size: 0.84rem;
   font-weight: 300;
-  line-height: 1.6;
+  line-height: 1.5;
+}
+
+.context-label {
+  margin: 0 0 0.2rem;
+  color: var(--yellow);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.workspace-context-board .button-link {
+  justify-self: end;
 }
 
 .breadcrumb-list {
@@ -258,19 +243,18 @@ h1 {
 
 .empty-state {
   align-self: center;
-  max-width: 46rem;
-  margin: clamp(3rem, 8vw, 7rem) 0;
-  padding: clamp(2rem, 5vw, 4rem);
+  max-width: 38rem;
+  margin: 2.5rem 0;
+  padding: 2rem;
   border: 1px solid var(--line);
   border-top: 3px solid var(--yellow);
   background: var(--navy-light);
 }
 
-.empty-state h2,
-.brief-card h2 {
+.empty-state h2 {
   margin: 0;
   font-family: var(--display);
-  font-size: clamp(2.2rem, 4vw, 3.8rem);
+  font-size: 2rem;
   font-weight: 400;
   letter-spacing: 0.015em;
   line-height: 1;
@@ -284,31 +268,33 @@ h1 {
 }
 
 .brief-collection {
-  padding: 0 0 clamp(4rem, 8vw, 8rem);
+  padding: 1.5rem 0 4rem;
 }
 
 .collection-count {
-  margin: 0 0 1.2rem;
+  margin: 0 0 0.75rem;
+  color: var(--white-dim);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
 }
 
 .brief-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   margin: 0;
   padding: 0;
-  border-top: 1px solid var(--line-soft);
-  border-left: 1px solid var(--line-soft);
+  border: 1px solid var(--line-soft);
+  border-bottom: 0;
   list-style: none;
 }
 
 .brief-card {
   display: grid;
-  min-height: 18rem;
-  grid-template-columns: 2rem minmax(0, 1fr);
-  align-content: space-between;
-  gap: 1.5rem;
-  padding: clamp(1.75rem, 4vw, 3rem);
-  border-right: 1px solid var(--line-soft);
+  min-height: 5.5rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2rem;
+  padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--line-soft);
   background: rgb(255 255 255 / 2%);
 }
@@ -317,8 +303,13 @@ h1 {
   background: var(--navy-light);
 }
 
-.brief-card .frame-number {
-  padding-top: 0.3rem;
+.brief-card h2 {
+  margin: 0;
+  font-family: var(--body);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
 }
 
 .brief-card h2 a {
@@ -332,21 +323,24 @@ h1 {
 }
 
 .brief-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1.25rem;
-  margin: 0 0 1rem;
-  font-size: 0.65rem;
-  letter-spacing: 0.12em;
+  display: grid;
+  grid-template-columns: 8rem 7rem;
+  gap: 1rem;
+  margin: 0;
+  color: var(--white-dim);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .brief-audience {
   max-width: 40rem;
-  margin: 1rem 0 0;
+  margin: 0.2rem 0 0;
   color: var(--white-dim);
-  font-size: 0.92rem;
+  font-size: 0.78rem;
   font-weight: 300;
-  line-height: 1.65;
+  line-height: 1.5;
 }
 
 .brief-form {
@@ -475,19 +469,18 @@ h1 {
     align-items: flex-start;
   }
 
-  .page-heading {
-    padding-block: 4.5rem 3rem;
-  }
-
-  .brief-list,
   .brief-form {
     grid-template-columns: 1fr;
   }
 
-  .form-context {
+  .workspace-context {
     grid-template-columns: 1fr;
     gap: 0.65rem;
     padding-block: 1.25rem;
+  }
+
+  .workspace-context-board .button-link {
+    justify-self: start;
   }
 
   .form-field-wide,
@@ -495,19 +488,15 @@ h1 {
     grid-column: auto;
   }
 
-  .brief-card {
-    min-height: 15rem;
-  }
-
 }
 
 @media (max-width: 34rem) {
   .masthead {
-    min-height: 5rem;
+    min-height: 4.25rem;
   }
 
   .wordmark {
-    font-size: 1.8rem;
+    font-size: 1.65rem;
   }
 
   .button-link-small {
@@ -517,9 +506,11 @@ h1 {
 
   .brief-card {
     grid-template-columns: 1fr;
+    gap: 0.6rem;
   }
 
-  .brief-card .frame-number {
-    padding-top: 0;
+  .brief-meta {
+    grid-template-columns: auto auto;
+    justify-content: start;
   }
 }

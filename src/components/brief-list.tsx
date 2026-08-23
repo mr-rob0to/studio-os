@@ -38,23 +38,20 @@ export function BriefList({ briefs }: { briefs: PersistedBrief[] }) {
         {briefs.length} {briefs.length === 1 ? "brief" : "briefs"}
       </p>
       <ol className="brief-list" aria-label="Submitted briefs" role="list">
-        {briefs.map((brief, index) => (
+        {briefs.map((brief) => (
           <li className="brief-card" key={brief.id} role="listitem">
-            <span className="frame-number" aria-hidden="true">
-              {String(index + 1).padStart(2, "0")}
-            </span>
-            <div>
-              <p className="brief-meta">
-                <span>{contentTypeLabels[brief.contentType]}</span>
-                <time dateTime={brief.createdAt.toISOString()}>
-                  {dateFormatter.format(brief.createdAt)}
-                </time>
-              </p>
+            <div className="brief-card-main">
               <h2>
                 <Link href={`/briefs/${brief.id}`}>{brief.title}</Link>
               </h2>
               <p className="brief-audience">For {brief.targetAudience}</p>
             </div>
+            <p className="brief-meta">
+              <span>{contentTypeLabels[brief.contentType]}</span>
+              <time dateTime={brief.createdAt.toISOString()}>
+                {dateFormatter.format(brief.createdAt)}
+              </time>
+            </p>
           </li>
         ))}
       </ol>

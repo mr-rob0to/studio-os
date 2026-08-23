@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const pageMocks = vi.hoisted(() => ({
@@ -56,7 +56,16 @@ describe("BriefsPage", () => {
 
     render(await BriefsPage());
 
-    expect(screen.getByRole("link", { name: "New brief" })).toHaveAttribute(
+    const workspaceHeader = screen.getByRole("region", {
+      name: "Creative briefs",
+    });
+
+    expect(
+      within(workspaceHeader).getByText(/Review briefs and start the next one/),
+    ).toBeVisible();
+    expect(
+      within(workspaceHeader).getByRole("link", { name: "New brief" }),
+    ).toHaveAttribute(
       "href",
       "/briefs/new",
     );
