@@ -158,9 +158,11 @@ If a production migration fails, the stable GitHub check fails and Vercel keeps 
 
 ## AI assistance
 
-AI helped draft the delivery plan, implementation, tests, code review, and documentation. I set the product scope and architecture constraints. I also used established agent workflows for specification-driven development, project standards, test-first development, and independent AI code reviews.
+I used Codex with GPT-5.6 Sol to plan and implement the application, write tests, and draft documentation. Fresh Claude Code Fable sessions provided independent read-only code reviews. I set the product scope and architecture constraints and used established agent workflows for specification-driven development, project standards, test-first development, and review.
 
-I consistently guided the AI away from unnecessary complexity and toward clear, developer-friendly documentation. I personally performed the final review for every pull request.
+During my manual review, I traced how the analysis prompt was assembled and how its version was persisted. I identified that the provider, model, and prompt version were already saved on the pending analysis before the provider call. Embedding that version inside a `<brief_data>` wrapper therefore duplicated the tracked metadata and could imply that the brief payload had its own version. I recommended sending the validated brief as plain JSON while retaining separate trusted instructions, OpenAI Structured Outputs, and local Zod validation. The resulting model-input change is recorded as `analysis-v3`.
+
+I consistently guided the AI away from unnecessary complexity and toward clear, developer-friendly documentation. I manually verified the prompt flow, challenged an unnecessary implementation choice, recommended the final change, and personally performed the final review for every pull request.
 
 ## Documentation
 
