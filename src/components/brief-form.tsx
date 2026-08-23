@@ -2,6 +2,7 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import {
   apiErrorSchema,
@@ -41,6 +42,7 @@ const uncertainSubmissionMessage =
   "We couldn't confirm whether your brief was saved. Check the brief board before submitting again. Your work is still here.";
 
 export function BriefForm() {
+  const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const submissionInFlight = useRef(false);
   const [values, setValues] = useState<FormValues>(initialValues);
@@ -48,11 +50,7 @@ export function BriefForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [submissionUncertain, setSubmissionUncertain] = useState(false);
-  const [savedBrief, setSavedBrief] = useState<{
-    id: string;
-    analysisFailed: boolean;
-  } | null>(null);
-  const isSubmitted = savedBrief !== null;
+  const [isNavigating, setIsNavigating] = useState(false);
 
   function updateValue(field: FieldName, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
@@ -143,10 +141,8 @@ export function BriefForm() {
         }
 
         keepSubmissionLocked = true;
-        setSavedBrief({
-          id: submission.data.id,
-          analysisFailed: submission.data.analysis.status === "failed",
-        });
+        setIsNavigating(true);
+        router.replace(`/briefs/${submission.data.id}`);
       }
     } catch {
       keepSubmissionLocked = true;
@@ -160,7 +156,7 @@ export function BriefForm() {
 
   return (
     <form
-      aria-busy={isSubmitting}
+      aria-busy={isSubmitting || isNavigating}
       aria-label="New creative brief"
       className="brief-form"
       noValidate
@@ -175,17 +171,6 @@ export function BriefForm() {
           ) : null}
         </div>
       ) : null}
-      {savedBrief ? (
-        <div className="form-message form-message-saved" role="status">
-          <p>
-            {savedBrief.analysisFailed
-              ? "Your brief was saved, but analysis could not finish."
-              : "Your brief was created and analyzed."}
-          </p>
-          <Link href={`/briefs/${savedBrief.id}`}>Open saved brief</Link>
-        </div>
-      ) : null}
-
       <div className="form-field">
         <label htmlFor="brief-title">Title</label>
         <input
@@ -302,10 +287,13 @@ export function BriefForm() {
       <div className="form-actions form-field-wide">
         <button
           className="submit-button"
-          disabled={isSubmitting || isSubmitted || submissionUncertain}
+          disabled={isSubmitting || isNavigating || submissionUncertain}
           type="submit"
         >
-          {getSubmitButtonLabel(isSubmitting, submissionUncertain, savedBrief)}
+          {getSubmitButtonLabel(
+            isSubmitting || isNavigating,
+            submissionUncertain,
+          )}
         </button>
       </div>
     </form>
@@ -313,19 +301,14 @@ export function BriefForm() {
 }
 
 function getSubmitButtonLabel(
-  isSubmitting: boolean,
+  isProcessing: boolean,
   submissionUncertain: boolean,
-  savedBrief: { analysisFailed: boolean } | null,
 ): string {
   if (submissionUncertain) {
     return "Submission uncertain";
   }
 
-  if (savedBrief) {
-    return savedBrief.analysisFailed ? "Brief saved" : "Brief created";
-  }
-
-  return isSubmitting ? "Submitting and analyzing…" : "Submit and analyze";
+  return isProcessing ? "Analyzing…" : "Submit and analyze";
 }
 
 function toFieldErrors(

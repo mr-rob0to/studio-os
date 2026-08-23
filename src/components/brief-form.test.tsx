@@ -3,6 +3,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BriefForm } from "./brief-form";
 
+const navigationMocks = vi.hoisted(() => ({
+  replace: vi.fn(),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: navigationMocks.replace }),
+}));
+
 const validValues = {
   title: "A quiet city wakes",
   description:
@@ -33,6 +41,7 @@ function fillValidForm() {
 describe("BriefForm", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
+    navigationMocks.replace.mockReset();
   });
 
   it("renders required field errors and focuses the first invalid field", () => {
@@ -181,7 +190,7 @@ describe("BriefForm", () => {
 
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(
-      screen.getByRole("button", { name: "Submitting and analyzing…" }),
+      screen.getByRole("button", { name: "Analyzing…" }),
     ).toBeDisabled();
 
     resolveResponse?.(
@@ -202,7 +211,7 @@ describe("BriefForm", () => {
     );
   });
 
-  it("shows successful submission with navigation to its future detail URL", async () => {
+  it("locks the valid submission immediately and replaces the form with its detail URL", async () => {
     vi.mocked(fetch).mockResolvedValue(
       Response.json(
         {
@@ -217,14 +226,11 @@ describe("BriefForm", () => {
 
     fireEvent.submit(screen.getByRole("form", { name: "New creative brief" }));
 
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Your brief was created and analyzed.",
-    );
-    expect(
-      screen.getByRole("link", { name: "Open saved brief" }),
-    ).toHaveAttribute(
-      "href",
-      "/briefs/00000000-0000-4000-8000-000000000001",
+    expect(screen.getByRole("button", { name: "Analyzing…" })).toBeDisabled();
+    await waitFor(() =>
+      expect(navigationMocks.replace).toHaveBeenCalledWith(
+        "/briefs/00000000-0000-4000-8000-000000000001",
+      ),
     );
     expect(fetch).toHaveBeenCalledWith(
       "/api/briefs",
@@ -234,10 +240,16 @@ describe("BriefForm", () => {
         body: JSON.stringify(validValues),
       }),
     );
-    expect(screen.getByRole("button", { name: "Brief created" })).toBeDisabled();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Open saved brief" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Analyzing…" })).toBeDisabled();
+    expect(screen.getByRole("form", { name: "New creative brief" })).toHaveAttribute(
+      "aria-busy",
+      "true",
+    );
   });
 
-  it("keeps a saved brief visible when provider analysis fails", async () => {
+  it("navigates a saved brief with failed analysis to its recoverable detail", async () => {
     vi.mocked(fetch).mockResolvedValue(
       Response.json(
         {
@@ -255,16 +267,17 @@ describe("BriefForm", () => {
 
     fireEvent.submit(screen.getByRole("form", { name: "New creative brief" }));
 
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Your brief was saved, but analysis could not finish.",
+    await waitFor(() =>
+      expect(navigationMocks.replace).toHaveBeenCalledWith(
+        "/briefs/00000000-0000-4000-8000-000000000001",
+      ),
     );
-    expect(
-      screen.getByRole("link", { name: "Open saved brief" }),
-    ).toHaveAttribute("href", "/briefs/00000000-0000-4000-8000-000000000001");
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Open saved brief" })).not.toBeInTheDocument();
     expect(screen.queryByText(/secret-model-token/)).not.toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Title" })).toHaveValue(
       validValues.title,
     );
-    expect(screen.getByRole("button", { name: "Brief saved" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Analyzing…" })).toBeDisabled();
   });
 });

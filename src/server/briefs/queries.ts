@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { PersistedBrief } from "@/contracts";
+import type { BriefDetail, PersistedBrief } from "@/contracts";
 import type { ApplicationEnvironment } from "@/server/config";
 import { createRepositoryFromEnvironment } from "@/server/db/connection";
 import type { BriefRepository } from "@/server/db/repository";
@@ -16,6 +16,17 @@ type BriefListRepositoryFactory = (
   environment: ApplicationEnvironment,
 ) => Promise<BriefListRepositoryHandle>;
 
+type BriefDetailRepository = Pick<BriefRepository, "findDetailById">;
+
+interface BriefDetailRepositoryHandle {
+  repository: BriefDetailRepository;
+  close(): Promise<void>;
+}
+
+type BriefDetailRepositoryFactory = (
+  environment: ApplicationEnvironment,
+) => Promise<BriefDetailRepositoryHandle>;
+
 export function listBriefs(
   repository: BriefListRepository,
 ): Promise<PersistedBrief[]> {
@@ -30,6 +41,27 @@ export async function listBriefsFromEnvironment(
 
   try {
     return await listBriefs(handle.repository);
+  } finally {
+    await handle.close();
+  }
+}
+
+export function findBriefDetail(
+  repository: BriefDetailRepository,
+  briefId: string,
+): Promise<BriefDetail | null> {
+  return repository.findDetailById(briefId);
+}
+
+export async function findBriefDetailFromEnvironment(
+  briefId: string,
+  environment: ApplicationEnvironment = process.env,
+  createRepository: BriefDetailRepositoryFactory = createRepositoryFromEnvironment,
+): Promise<BriefDetail | null> {
+  const handle = await createRepository(environment);
+
+  try {
+    return await findBriefDetail(handle.repository, briefId);
   } finally {
     await handle.close();
   }

@@ -37,24 +37,35 @@ export function BriefList({ briefs }: { briefs: PersistedBrief[] }) {
       <p className="collection-count" id="brief-count">
         {briefs.length} {briefs.length === 1 ? "brief" : "briefs"}
       </p>
-      <ol className="brief-list" aria-label="Submitted briefs" role="list">
-        {briefs.map((brief) => (
-          <li className="brief-card" key={brief.id} role="listitem">
-            <div className="brief-card-main">
-              <h2>
-                <Link href={`/briefs/${brief.id}`}>{brief.title}</Link>
-              </h2>
-              <p className="brief-audience">For {brief.targetAudience}</p>
-            </div>
-            <p className="brief-meta">
-              <span>{contentTypeLabels[brief.contentType]}</span>
-              <time dateTime={brief.createdAt.toISOString()}>
-                {dateFormatter.format(brief.createdAt)}
-              </time>
-            </p>
-          </li>
-        ))}
-      </ol>
+      <table className="brief-list" aria-label="Submitted briefs">
+        <thead>
+          <tr>
+            <th scope="col">Brief</th>
+            <th scope="col">Type</th>
+            <th scope="col">Submitted</th>
+          </tr>
+        </thead>
+        <tbody>
+          {briefs.map((brief) => (
+            <tr className="brief-card" key={brief.id}>
+              <td className="brief-card-main">
+                <h2>
+                  <Link href={`/briefs/${brief.id}`}>{brief.title}</Link>
+                </h2>
+                <p className="brief-audience">For {brief.targetAudience}</p>
+              </td>
+              <td className="brief-type" data-label="Type">
+                {contentTypeLabels[brief.contentType]}
+              </td>
+              <td className="brief-submitted" data-label="Submitted">
+                <time dateTime={brief.createdAt.toISOString()}>
+                  {dateFormatter.format(brief.createdAt)}
+                </time>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </section>
   );
 }
