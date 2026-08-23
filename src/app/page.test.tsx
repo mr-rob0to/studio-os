@@ -1,22 +1,19 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+const rootRouteMocks = vi.hoisted(() => ({
+  redirect: vi.fn((path: string) => {
+    throw new Error(`NEXT_REDIRECT:${path}`);
+  }),
+}));
+
+vi.mock("next/navigation", () => ({
+  redirect: rootRouteMocks.redirect,
+}));
 
 import Home from "./page";
 
 describe("Home", () => {
-  it("renders the accessible Studio OS foundation shell", () => {
-    render(<Home />);
-
-    expect(
-      screen.getByRole("heading", {
-        level: 1,
-        name: "Give every idea a clear next frame.",
-      }),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Foundation ready")).toBeInTheDocument();
-    expect(screen.getByRole("list", { name: "Brief workflow" })).toBeVisible();
-    expect(screen.getByText("Brief")).toBeInTheDocument();
-    expect(screen.getByText("Shape")).toBeInTheDocument();
-    expect(screen.getByText("Decide")).toBeInTheDocument();
+  it("lands internal-tool users on the brief board", () => {
+    expect(() => Home()).toThrow("NEXT_REDIRECT:/briefs");
   });
 });
