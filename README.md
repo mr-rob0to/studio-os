@@ -40,6 +40,14 @@ Expected response:
 {"status":"healthy","database":"ready"}
 ```
 
+### Walkthrough deck
+
+Open [http://localhost:3000/walkthrough](http://localhost:3000/walkthrough) for the seven-slide video walkthrough. For recording, use a 16:9 browser window at 1920x1080 or 1280x720 and open `/briefs` in a separate tab before advancing to the final `DEMO` slide.
+
+Use `ArrowRight`, `Space`, or `PageDown` to advance; `ArrowLeft` or `PageUp` to go back; and `Home` or `End` to jump to the first or last slide. Previous and Next controls provide a pointer and touch fallback outside the slide stage.
+
+The deck targets WCAG 2.2 AA and honors reduced-motion preferences. Browser support matches the installed Next.js version: Chrome 111+, Edge 111+, Firefox 111+, and Safari 16.4+.
+
 ### Environment selection
 
 | Environment | Database settings | Database |
@@ -64,6 +72,7 @@ For AI analysis, set `AI_PROVIDER=mock` or `AI_PROVIDER=openai`. OpenAI also req
 | Path | Contents |
 | --- | --- |
 | `src/app/briefs/` | Brief board, new-brief page, and brief detail page |
+| `src/app/walkthrough/` | Static keyboard-driven video walkthrough deck |
 | `src/app/api/` | Create, retry, and health Route Handlers |
 | `src/components/` | Interactive form and retry controls plus brief presentation components |
 | `src/contracts.ts` | Zod schemas for brief input, stored records, analysis output, and API errors |
