@@ -104,7 +104,7 @@ Vercel Git integration owns application deployments. A pull request creates a Pr
 
 For pull requests and `main`, GitHub Actions installs the locked dependencies, applies every committed migration to a clean PGlite database, checks that the Drizzle schema matches the migration history, then runs lint, typecheck, the full test suite, and a production build.
 
-After the quality gate passes on `main`, the `Production database migration` job runs `pnpm db:migrate` against Neon. The job uses the protected GitHub `production` environment and its `DATABASE_URL` secret. It runs on every `main` update; already-applied migrations are safe no-ops.
+After the quality gate passes on `main`, the `Production database migration` job runs `pnpm db:migrate` against Neon. The job uses the protected GitHub `production` environment and its `DATABASE_URL` secret. It runs on every `main` update; migrations already recorded by Drizzle are safely skipped.
 
 Vercel must require `Production database migration` as a [Deployment Check](https://vercel.com/docs/deployment-checks). A deployment check is a release gate: Vercel may build the new version while GitHub Actions runs, but it keeps the current Production deployment live unless the migration job succeeds.
 
@@ -128,7 +128,7 @@ Complete the one-time platform setup in this order:
 
 Pull requests validate migrations with clean PGlite only. This release does not create a Neon database branch per pull request and does not migrate Preview Neon automatically. Apply committed migrations to the shared Preview database through an approved operator process before testing a preview that depends on new schema.
 
-If a production migration fails, the stable GitHub check fails and Vercel keeps the previous deployment live. Fix the migration with a compatible forward change; do not automatically roll the database back. Migrations must remain compatible with the current Production application because Vercel can finish its build before the database gate completes.
+If a production migration fails, the stable GitHub check fails and Vercel keeps the previous deployment live. Neon HTTP cannot wrap a whole migration file in one transaction, so a failure can leave part of the file applied before Drizzle records it. Inspect the production schema and migration logs through the protected operator tools, reconcile partial changes with a compatible forward fix, and rerun only after the current schema is known. Do not edit committed migration history or automatically roll the database back. Migrations must remain compatible with the current Production application because Vercel can finish its build before the database gate completes.
 
 ## Key trade-offs
 

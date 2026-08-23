@@ -136,9 +136,11 @@ Vercel Git integration owns Preview and Production deployments. GitHub Actions o
 
 Pull requests use a frozen install, apply committed migrations to a clean PGlite database, verify that the Drizzle schema has matching committed migration history, then run lint, typecheck, the full test suite, and a production build. This validates migration files without production credentials.
 
-Every update to `main` repeats that complete quality gate. The stable `Production database migration` job then enters the branch-restricted GitHub `production` environment and runs the idempotent migration command against Neon. Idempotent means an already-applied migration is safely skipped.
+Every update to `main` repeats that complete quality gate. The stable `Production database migration` job then enters the branch-restricted GitHub `production` environment and runs the migration command against Neon. Drizzle safely skips migrations already recorded as applied.
 
-Vercel requires `Production database migration` as a [Deployment Check](https://vercel.com/docs/deployment-checks). Vercel can build at the same time as GitHub Actions, but it promotes the build only when that check passes. A failed migration therefore leaves the previous Production deployment live. There is no automatic database rollback; recovery uses a compatible forward migration.
+Vercel requires `Production database migration` as a [Deployment Check](https://vercel.com/docs/deployment-checks). Vercel can build at the same time as GitHub Actions, but it promotes the build only when that check passes. A failed migration therefore leaves the previous Production deployment live.
+
+The Neon HTTP driver cannot wrap a whole migration file in one transaction. If a file fails after some statements run, Drizzle has not recorded it as applied and a blind rerun can fail on the partial schema. Recovery requires inspecting the protected production schema and migration logs, reconciling the partial change with a compatible forward fix, then rerunning. Committed migration history is not edited, and the workflow never attempts an automatic database rollback.
 
 GitHub stores only the protected production `DATABASE_URL` used by the migration job. Vercel separately stores runtime `DATABASE_URL`, `OPENAI_API_KEY`, `APP_ENV`, `DATABASE_DRIVER`, and provider settings for Preview and Production.
 
