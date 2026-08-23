@@ -87,7 +87,7 @@ For AI analysis, set `AI_PROVIDER=mock` or `AI_PROVIDER=openai`. OpenAI also req
 | `pnpm build` | Create a production build |
 | `pnpm start` | Serve an existing production build |
 
-## HTTP endpoints
+## API Endpoints
 
 | Method and path | Purpose |
 | --- | --- |
@@ -99,9 +99,9 @@ See [Architecture](docs/ARCHITECTURE.md) for the data flow, schema, contracts, a
 
 ## Key trade-offs
 
-1. Analysis runs inside the request. This keeps ownership and recovery simple, but the request is bounded by the provider timeout and is not suitable for long-running work.
-2. PGlite is used locally and Neon is used when hosted. Contributors need no external database for local work, but both adapters must stay compatible with one Drizzle schema and migration history.
-3. Each brief keeps one current analysis row. Reads and retries stay simple, but the application does not retain analysis history.
+1. The app completes AI analysis before it finishes the submit or retry request. This keeps the workflow simple, but there is no background queue for longer-running analysis.
+2. The pages and backend API live in the same Next.js app. This is simpler for a first version, but a larger product would likely separate the client and backend so they can be changed and released independently.
+3. Each brief has one analysis record that is updated when analysis is retried. This keeps the first version simple, but past analysis runs are not kept as permanent records, so there is no history or reporting across runs.
 
 ## Intentionally not built
 
