@@ -43,8 +43,11 @@ describe("BriefList", () => {
   it("renders submitted briefs with navigation to their detail URLs", () => {
     render(<BriefList briefs={briefs} />);
 
-    expect(screen.getByRole("list", { name: "Submitted briefs" })).toBeVisible();
-    expect(screen.getAllByRole("listitem")).toHaveLength(2);
+    expect(screen.getByRole("table", { name: "Submitted briefs" })).toBeVisible();
+    expect(screen.getByRole("columnheader", { name: "Brief" })).toBeVisible();
+    expect(screen.getByRole("columnheader", { name: "Type" })).toBeVisible();
+    expect(screen.getByRole("columnheader", { name: "Submitted" })).toBeVisible();
+    expect(screen.getAllByRole("row")).toHaveLength(3);
     expect(screen.getByText("2 briefs")).toBeVisible();
     expect(screen.getByRole("link", { name: "A quiet city wakes" })).toHaveAttribute(
       "href",
