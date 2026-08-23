@@ -65,7 +65,7 @@ flowchart TD
     OpenAIFactory --> WorkflowRuntime
 ```
 
-Database validation in `src/server/config.ts` requires both `APP_ENV` and `DATABASE_DRIVER`. PGlite is allowed only in local and test environments. Neon always requires `DATABASE_URL`. Empty optional environment strings are normalized to absent values before driver-specific validation. The database code ignores hosting-provider environment metadata, so preview and production mapping remains an operations responsibility.
+Database validation in `src/server/config.ts` requires both `APP_ENV` and `DATABASE_DRIVER`. PGlite is allowed only in local and test environments. Neon always requires `DATABASE_URL`. An empty `DATABASE_URL` placeholder is normalized to an absent value before driver-specific validation, while an empty `PGLITE_DATA_DIR` remains invalid. The database code ignores hosting-provider environment metadata, so preview and production mapping remains an operations responsibility.
 
 Analysis validation in `src/server/analysis/environment.ts` requires `AI_PROVIDER`. OpenAI requires `OPENAI_API_KEY`; mock requires no secret. `AI_TIMEOUT_MS` defaults to 12000 milliseconds and is capped at 60000. Invalid configuration fails before an adapter is imported or a side effect begins.
 
@@ -387,12 +387,12 @@ Recorded on 2026-08-22 from an isolated clean copy of the Task 8 branch:
 | Local committed migration | Passed through `pnpm db:migrate` with `.env.local` copied directly from `.env.example` |
 | Lint | Passed with ESLint |
 | Strict typecheck | Passed with no emitted files |
-| Full Vitest suite | 28 test files passed, 104 tests passed |
+| Full Vitest suite | 28 test files passed, 105 tests passed |
 | Production build | Passed with Next.js 16.3.2; static and dynamic routes were classified as documented |
 | Local brief create, detail, failed analysis, retry, and health paths | Passed against isolated PGlite in development mode; production start and health also passed |
 | Markdown links, paths, and Mermaid diagrams | All relative links, anchors, and documented paths passed; all five diagrams parsed and rendered |
 
-The new migration CLI integration guard was seen to fail before the fix by setting the same empty optional `DATABASE_URL` produced when `.env.example` is copied for local use. It then passed after empty optional environment strings were normalized to absent values. Existing composition tests continue to prove that explicit local PGlite and production Neon settings dispatch only to their selected migration adapters.
+The new migration CLI integration guard was seen to fail before the fix by setting the same empty optional `DATABASE_URL` produced when `.env.example` is copied for local use. It then passed after an empty optional `DATABASE_URL` was normalized to an absent value. Focused configuration tests keep an empty PGlite data directory invalid and an empty Neon URL fail-closed. Existing composition tests continue to prove that explicit local PGlite and production Neon settings dispatch only to their selected migration adapters.
 
 The OpenAI adapter is covered by deterministic tests with a fake client. Task 8 does not make a paid external provider call, migrate Neon, deploy, or claim production verification. Those boundaries keep credentials out of documentation and preserve Tasks 9 and 10.
 

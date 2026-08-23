@@ -19,6 +19,7 @@ describe("application environment", () => {
     expect(
       parseApplicationEnvironment({
         APP_ENV: "local",
+        DATABASE_URL: "",
         DATABASE_DRIVER: "pglite",
         PGLITE_DATA_DIR: ".pglite/studio-os",
       }),
@@ -52,11 +53,28 @@ describe("application environment", () => {
     ).toThrow();
   });
 
+  it("rejects an empty PGlite data directory", () => {
+    expect(() =>
+      parseApplicationEnvironment({
+        APP_ENV: "local",
+        DATABASE_DRIVER: "pglite",
+        PGLITE_DATA_DIR: " ",
+      }),
+    ).toThrow();
+  });
+
   it("requires a server-only database URL when Neon is selected", () => {
     expect(() =>
       parseApplicationEnvironment({
         APP_ENV: "preview",
         DATABASE_DRIVER: "neon",
+      }),
+    ).toThrow();
+    expect(() =>
+      parseApplicationEnvironment({
+        APP_ENV: "preview",
+        DATABASE_DRIVER: "neon",
+        DATABASE_URL: "",
       }),
     ).toThrow();
     expect(

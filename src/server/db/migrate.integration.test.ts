@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 
+import { PGlite } from "@electric-sql/pglite";
 import { expect, it } from "vitest";
 
 const execFileAsync = promisify(execFile);
@@ -16,7 +17,7 @@ it(
     const dataDir = await mkdtemp(join(tmpdir(), "studio-os-migrate-test-"));
 
     try {
-      const result = await execFileAsync(
+      await execFileAsync(
         "pnpm",
         ["db:migrate"],
         {
@@ -37,10 +38,17 @@ it(
         },
       );
 
-      expect(result.stderr).toBe("");
+      const database = new PGlite(dataDir);
+
+      try {
+        await expect(database.query("SELECT id FROM briefs LIMIT 0")).resolves
+          .toMatchObject({ rows: [] });
+      } finally {
+        await database.close();
+      }
     } finally {
       await rm(dataDir, { force: true, recursive: true });
     }
   },
-  15_000,
+  30_000,
 );

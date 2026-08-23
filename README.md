@@ -66,7 +66,7 @@ Application configuration fails closed when required values are missing or incom
 | Preview | `APP_ENV=preview`, `DATABASE_DRIVER=neon`, `DATABASE_URL` | Neon HTTP |
 | Production | `APP_ENV=production`, `DATABASE_DRIVER=neon`, `DATABASE_URL` | Neon HTTP |
 
-PGlite is rejected for preview and production. Neon is rejected without a server-only `DATABASE_URL`. Empty optional placeholders are treated as unset, so the copied local example does not activate Neon configuration. Never prefix database or provider credentials with `NEXT_PUBLIC_`.
+PGlite is rejected for preview and production. Neon is rejected without a server-only `DATABASE_URL`. The empty `DATABASE_URL` placeholder in the copied local example is treated as unset, while an empty `PGLITE_DATA_DIR` remains invalid. Never prefix database or provider credentials with `NEXT_PUBLIC_`.
 
 Local repository creation applies the committed migrations before returning a repository. Shared Neon databases are migrated explicitly with the same committed files:
 
