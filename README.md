@@ -132,33 +132,32 @@ If a production migration fails, the stable GitHub check fails and Vercel keeps 
 
 ## Key trade-offs
 
-1. The app completes AI analysis before it finishes the submit or retry request. This keeps the workflow simple, but there is no background queue for longer-running analysis.
+1. Brief submission and retry are synchronous today. The user waits for the request to return a result or failure while the UI displays `Analyzing…`. Slow AI analysis can increase that wait, but this avoids introducing a separate queue and worker service for now.
 2. The pages and backend API live in the same Next.js app. This is simpler for a first version, but a larger product would likely separate the client and backend so they can be changed and released independently.
-3. Each brief has one analysis record that is updated when analysis is retried. This keeps the first version simple, but past analysis runs are not kept as permanent records, so there is no history or reporting across runs.
+3. Each brief has one analysis record that is updated when analysis is retried (mutable). This keeps the first version simple, but past analysis runs are not kept as permanent records (immutable), so there is no history or reporting across runs.
 
 ## Intentionally not built
 
 - Authentication or authorization
 - Brief editing or deletion
 - Uploads, comments, collaboration, or analysis history
-- Background jobs, model routing, provider fallback, or external monitoring
-- A separate public API
+- Background jobs, AI model routing, provider fallback, or external monitoring
 
 
 ## Future enhancements
 
-- Add authentication and role-based access before use outside a trusted internal team.
-- Add ways to measure and improve AI analysis quality.
-- Add file uploads.
-- Connect Slack, Jira, and Google Drive for notifications and workflow automation.
+- Add authentication and role-based access (ideally SSO).
+- Add ways to measure and improve AI analysis quality (evals)
+- Add file uploads for briefs
+- 3rd-party integrations (Slack, Jira, and Google Drive, etc.) for notifications and workflow automation.
 - Add real-time collaboration for multiple users.
-- Add brief editing with version history and explicit analysis invalidation rules.
-- Move long-running analysis to background jobs with progress and operational monitoring.
+- Add brief editing with version history
+- Move long-running analysis to background jobs (queues) with progress and operational monitoring.
 - Add richer deployment monitoring and automated rollback analysis.
 
 ## AI assistance
 
-I used Codex with GPT-5.6 Sol to plan and implement the application, write tests, and draft documentation. Fresh Claude Code Fable sessions provided independent read-only code reviews. I set the product scope and architecture constraints and used established agent workflows for specification-driven development, project standards, test-first development, and review.
+I used Codex with GPT-5.6 Sol to plan and implement the application, write tests, and draft documentation. Fresh Claude Code Fable sessions provided independent read-only code reviews. I set the product scope and architecture constraints and used my own established agent workflows (and skills) for spec-driven development, project standards, test-first development, and review.
 
 During my manual review, I traced how the analysis prompt was assembled and how its version was persisted. I identified that the provider, model, and prompt version were already saved on the pending analysis before the provider call. Embedding that version inside a `<brief_data>` wrapper therefore duplicated the tracked metadata and could imply that the brief payload had its own version. I recommended sending the validated brief as plain JSON while retaining separate trusted instructions, OpenAI Structured Outputs, and local Zod validation. The resulting model-input change is recorded as `analysis-v3`.
 
