@@ -1,11 +1,20 @@
 # Studio OS
 
-Studio OS is an internal animation-studio brief application. It provides a brief board and submission interface backed by shared contracts, PostgreSQL persistence, server-only structured analysis providers, and create and retry workflow endpoints.
+Studio OS is an internal animation-studio brief application. A teammate submits creative direction, the application saves it, a configured analysis provider returns a structured readiness review, and the team sees either the completed analysis or a safe retry path.
+
+The current interface includes:
+
+- A brief board at `/briefs` with empty and populated states.
+- A submission form at `/briefs/new` with client and server validation.
+- A detail page at `/briefs/{id}` with completed, failed, and pending analysis states.
+- A retry action that reuses the saved brief and analysis record.
+- A database readiness endpoint at `/api/health`.
 
 ## Prerequisites
 
 - Node.js 22
 - pnpm 10.33.0
+- Git
 
 Enable the package manager bundled with Node.js:
 
@@ -15,82 +24,140 @@ corepack enable
 
 ## Local setup
 
+These commands take a clean clone to a running application with file-backed PGlite and the deterministic mock analysis provider:
+
 ```bash
 git clone https://github.com/mr-rob0to/studio-os.git
 cd studio-os
 pnpm install --frozen-lockfile
 cp .env.example .env.local
-pnpm db:migrate:local
+pnpm db:migrate
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The internal app sends the root route directly to the brief board at `/briefs`; the submission form is at `/briefs/new`.
+Open [http://localhost:3000](http://localhost:3000). The root route redirects to the brief board at `/briefs`.
 
-## Database environments
+The copied `.env.local` is already configured for local PGlite and successful mock analysis. It is ignored by Git. Local database files are written under `.pglite/`, which is also ignored. Do not commit either path.
 
-- Set `APP_ENV=local|test|preview|production` and `DATABASE_DRIVER=pglite|neon` explicitly; missing or invalid values fail closed.
-- Local development uses `APP_ENV=local`, `DATABASE_DRIVER=pglite`, and writes only to `PGLITE_DATA_DIR`.
-- Tests create a fresh in-memory PGlite database and apply the same committed migration.
-- Preview and production require `DATABASE_DRIVER=neon` plus a server-only `DATABASE_URL`; application configuration rejects PGlite before its adapter can load. Hosting configuration must map provider-specific deployment state to `APP_ENV` outside the application runtime.
-- Put database credentials in an ignored `.env.local` locally or in sensitive deployment configuration, never in `NEXT_PUBLIC_` variables.
-- Apply the same committed migration to Neon with `APP_ENV=preview pnpm db:migrate:neon` or `APP_ENV=production pnpm db:migrate:neon`. This command requires `DATABASE_URL`; it does not use `drizzle-kit push`.
-
-## Analysis providers
-
-- Set `AI_PROVIDER=mock` for deterministic local analysis without credentials, or `AI_PROVIDER=openai` for the OpenAI Responses API.
-- OpenAI mode requires a server-only `OPENAI_API_KEY`; never expose it through a `NEXT_PUBLIC_` variable.
-- `OPENAI_MODEL` defaults to `gpt-4o-mini`, and `AI_TIMEOUT_MS` defaults to 12000 when omitted.
-- `MOCK_AI_MODE=success|timeout|malformed` provides explicit local failure verification. OpenAI failures never fall back to mock output.
-- Provider output remains untrusted until the analysis service parses it with the shared Zod contract.
-
-## Mutation endpoints
-
-- `POST /api/briefs` requires `application/json`, enforces a 16 KiB body limit, validates the brief, persists the brief and pending analysis, then runs the configured provider.
-- `POST /api/briefs/{id}/analysis` requires a valid brief UUID and an empty body. It retries a failed analysis, rejects active concurrent work, and reclaims pending work older than `AI_TIMEOUT_MS + 5 seconds`.
-- Provider timeout, refusal, failure, and malformed output remain stored as safe failed analysis records so the brief is never lost.
-- Errors use one JSON envelope with a request ID. Database failures, provider responses, credentials, and submitted brief content are never returned.
-
-## Health endpoint
-
-- `GET /api/health` queries the configured database and returns `200 {"status":"healthy","database":"ready"}` only when the migrated briefs table is ready.
-- Database configuration, connection, query, and close work share a two-second budget. Any failure or timeout returns `503 {"status":"degraded","database":"unavailable"}`.
-- Every response uses `Cache-Control: no-store`; the endpoint never creates or invokes an analysis provider or model.
-- Responses contain no database errors, credentials, paths, queries, stack traces, provider details, or other internals.
-
-Check local readiness after starting the app:
+Confirm the application and database are ready:
 
 ```bash
-curl -i http://localhost:3000/api/health
+curl --fail --show-error http://localhost:3000/api/health
 ```
+
+Expected response:
+
+```json
+{"status":"healthy","database":"ready"}
+```
+
+Stop the development server with `Ctrl+C`.
+
+## Environment configuration
+
+Application configuration fails closed when required values are missing or incompatible. Runtime modules read application-level settings only, not hosting-provider metadata.
+
+### Database
+
+| Environment | Required values | Database |
+| --- | --- | --- |
+| Local | `APP_ENV=local`, `DATABASE_DRIVER=pglite`, optional `PGLITE_DATA_DIR` | File-backed PGlite |
+| Test | `APP_ENV=test`, `DATABASE_DRIVER=pglite`, no data directory | Fresh in-memory PGlite per database test |
+| Preview | `APP_ENV=preview`, `DATABASE_DRIVER=neon`, `DATABASE_URL` | Neon HTTP |
+| Production | `APP_ENV=production`, `DATABASE_DRIVER=neon`, `DATABASE_URL` | Neon HTTP |
+
+PGlite is rejected for preview and production. Neon is rejected without a server-only `DATABASE_URL`. Empty optional placeholders are treated as unset, so the copied local example does not activate Neon configuration. Never prefix database or provider credentials with `NEXT_PUBLIC_`.
+
+Local repository creation applies the committed migrations before returning a repository. Shared Neon databases are migrated explicitly with the same committed files:
+
+```bash
+APP_ENV=preview DATABASE_DRIVER=neon pnpm db:migrate
+APP_ENV=production DATABASE_DRIVER=neon pnpm db:migrate
+```
+
+The one migration command loads the environment, validates `APP_ENV` and `DATABASE_DRIVER`, and dispatches to the selected adapter. Each Neon invocation requires `DATABASE_URL` in the server environment. The project uses committed migrations under `drizzle/`, not `drizzle-kit push`.
+
+### Analysis provider
+
+| Provider | Required values | Behavior |
+| --- | --- | --- |
+| Mock | `AI_PROVIDER=mock` | Deterministic local result, no credential |
+| OpenAI | `AI_PROVIDER=openai`, `OPENAI_API_KEY` | Responses API with Structured Outputs |
+
+`OPENAI_MODEL` defaults to `gpt-4o-mini`. `AI_TIMEOUT_MS` defaults to 12000 milliseconds and accepts a positive integer up to 60000. OpenAI mode never falls back to mock output.
+
+The mock provider exposes explicit local verification modes:
+
+- `MOCK_AI_MODE=success` returns a valid completed analysis.
+- `MOCK_AI_MODE=malformed` returns invalid provider output, which becomes a stored failed analysis.
+- `MOCK_AI_MODE=timeout` waits until the configured timeout, which becomes a stored timeout failure.
+
+Restart `pnpm dev` after changing `.env.local`.
+
+## User walkthrough
+
+1. Open `/briefs` and select **New brief**.
+2. Submit a title, content type, description, and target audience. Notes are optional.
+3. The browser sends `POST /api/briefs`. The server validates the request and saves the brief with a pending analysis before calling the provider.
+4. A successful request opens `/briefs/{id}`. Completed analysis shows a recommendation, themes, classification, audience interpretation, strengths, opportunities, risks, missing information, and assigned next actions.
+5. A provider timeout, refusal, failure, or malformed response still opens the saved brief with a safe failed state.
+6. **Retry analysis** sends `POST /api/briefs/{id}/analysis`. It never creates another brief or analysis row.
+7. Return to `/briefs` to see saved briefs newest first.
+
+For a code-level walkthrough, ownership map, and safe extension order, see [`docs/OWNERSHIP.md`](docs/OWNERSHIP.md).
 
 ## Commands
 
-```bash
-pnpm dev        # start the local development server
-pnpm lint       # run ESLint
-pnpm typecheck  # check strict TypeScript
-pnpm test       # run the Vitest suite once
-pnpm build      # create the production build
-pnpm start      # serve the production build
-pnpm db:migrate:local # apply committed migrations to local PGlite
-pnpm db:migrate:neon  # apply the same migrations to Neon
-```
+| Command | Purpose |
+| --- | --- |
+| `pnpm dev` | Start the local development server |
+| `pnpm lint` | Run ESLint |
+| `pnpm typecheck` | Check strict TypeScript without emitting files |
+| `pnpm test` | Run the Vitest suite once |
+| `pnpm test:watch` | Run Vitest in watch mode |
+| `pnpm build` | Create the production build |
+| `pnpm start` | Serve an existing production build |
+| `pnpm db:migrate` | Validate the current environment and apply committed migrations through its selected PGlite or Neon adapter |
 
-CI runs the frozen install, lint, typecheck, test, and production build commands for every pull request into `main`.
+Pull request CI currently runs a frozen install, applies committed migrations to clean PGlite, then runs lint, typecheck, tests, and a production build. CI-owned production release and deployment are intentionally deferred to Task 9.
+
+## HTTP interface
+
+| Method and path | Purpose | Success |
+| --- | --- | --- |
+| `POST /api/briefs` | Validate, save, and analyze a new brief | `201` with the persisted brief and analysis |
+| `POST /api/briefs/{id}/analysis` | Retry eligible failed or stale pending analysis | `200` with the updated persisted brief and analysis |
+| `GET /api/health` | Check migrated database readiness without a provider call | `200` healthy or `503` degraded |
+
+Mutation responses use `Cache-Control: no-store`, include an `X-Request-Id` header, and return safe errors in one envelope. The complete request, response, error, retry, and health contracts are in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#http-contracts).
 
 ## Accessibility and browser support
 
-- The brief board and submission form use semantic headings, labels, field-level errors, live status messages, visible keyboard focus, and a skip link.
-- Keyboard-only use is supported for navigation, form entry, validation recovery, and submission.
-- Layouts adapt from a two-column desktop presentation to a single-column mobile flow, and motion respects `prefers-reduced-motion`.
+- Semantic headings, labels, field-level errors, live status messages, visible keyboard focus, and a skip link support navigation and recovery.
+- Keyboard-only use is supported for navigation, form entry, validation recovery, submission, and retry.
+- The layout changes from two desktop columns to one mobile column and respects `prefers-reduced-motion`.
 - The supported baseline is the current and previous major versions of Chrome, Edge, Firefox, and Safari.
 
-## Project guidance
+## Project documentation
 
-- Engineering standards: [`docs/constitution.md`](docs/constitution.md)
-- Approved delivery plan: [`docs/superpowers/plans/2026-08-22-studio-os.md`](docs/superpowers/plans/2026-08-22-studio-os.md)
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): system composition, schema, flows, HTTP contracts, tradeoffs, exclusions, and change guides.
+- [`docs/OWNERSHIP.md`](docs/OWNERSHIP.md): path ownership, contributor walkthrough, operational responsibilities, and implementation learnings.
+- [`docs/constitution.md`](docs/constitution.md): binding engineering and delivery standards.
+- [`docs/superpowers/plans/2026-08-22-studio-os.md`](docs/superpowers/plans/2026-08-22-studio-os.md): live delivery status and remaining roadmap.
 
-## Current scope
+## Current scope and roadmap
 
-- Included: accessible brief list, submission, detail, analysis, and retry screens; strict TypeScript; shared Zod contracts; PostgreSQL persistence; PGlite and Neon adapters; versioned analysis prompt; deterministic mock and OpenAI providers; bounded analysis service; brief workflow APIs; atomic retries; database-aware health checks; safe request errors; linting; tests; production build; CI; and environment examples.
-- Deferred: architecture and ownership documentation, CI-owned production release, and production verification.
+Included now: brief list, submission, detail, structured analysis, recoverable retry, PGlite and Neon composition, committed migrations, OpenAI and mock providers, database health, safe errors, accessible responsive UI, tests, build, and contributor documentation.
+
+Explicitly excluded: authentication, authorization, editing, deletion, collaboration, uploads, queues, model routing, monitoring integrations, and new product workflows.
+
+Next delivery steps:
+
+1. Task 9 adds CI-owned migration and production deployment orchestration.
+2. Task 10 verifies the live production workflow and records the final operational handoff.
+
+## Verification and disclosure
+
+Task 8 documentation was checked from an isolated clean copy using the setup and validation commands it documents. The recorded command evidence and known verification boundaries are in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#verified-baseline).
+
+This repository was developed with AI-assisted planning, implementation, review, and documentation. The maintainer owns the architecture and delivery decisions, verified the documented behavior against the repository, ran the recorded checks, and remains responsible for the result.

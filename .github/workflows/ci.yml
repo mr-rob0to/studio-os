@@ -37,8 +37,10 @@ jobs:
 
       - name: Verify committed migration
         env:
+          APP_ENV: local
+          DATABASE_DRIVER: pglite
           PGLITE_DATA_DIR: ${{ runner.temp }}/studio-os-migration-check
-        run: pnpm db:migrate:local
+        run: pnpm db:migrate
 
       - name: Lint
         run: pnpm lint

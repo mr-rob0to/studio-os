@@ -2,11 +2,17 @@ import "server-only";
 
 import { z } from "zod";
 
+const optionalEnvironmentString = z.preprocess(
+  (value) =>
+    typeof value === "string" && value.trim().length === 0 ? undefined : value,
+  z.string().trim().min(1).optional(),
+);
+
 const applicationEnvironmentSchema = z.object({
   APP_ENV: z.enum(["local", "test", "preview", "production"]),
   DATABASE_DRIVER: z.enum(["pglite", "neon"]),
-  PGLITE_DATA_DIR: z.string().trim().min(1).optional(),
-  DATABASE_URL: z.string().trim().min(1).optional(),
+  PGLITE_DATA_DIR: optionalEnvironmentString,
+  DATABASE_URL: optionalEnvironmentString,
 }).superRefine((configuration, context) => {
   if (
     configuration.DATABASE_DRIVER === "pglite" &&
