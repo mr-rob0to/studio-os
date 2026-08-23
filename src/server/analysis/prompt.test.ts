@@ -39,20 +39,16 @@ describe("analysis prompt", () => {
     );
   });
 
-  it("keeps stable instructions separate from all delimited brief fields", () => {
+  it("keeps stable instructions separate from the JSON brief payload", () => {
     const prompt = buildAnalysisPrompt(brief);
 
-    expect(PROMPT_VERSION).toBe("analysis-v2");
+    expect(PROMPT_VERSION).toBe("analysis-v3");
     expect(prompt.instructions).toBe(ANALYSIS_INSTRUCTIONS);
     expect(prompt.instructions).not.toContain(brief.title);
-    expect(prompt.userContent).toMatch(
-      /^<brief_data version="analysis-v2">\n[\s\S]+\n<\/brief_data>$/,
-    );
-    expect(prompt.userContent).toContain(JSON.stringify(brief.title));
-    expect(prompt.userContent).toContain(JSON.stringify(brief.description));
-    expect(prompt.userContent).toContain(JSON.stringify(brief.contentType));
-    expect(prompt.userContent).toContain(JSON.stringify(brief.targetAudience));
-    expect(prompt.userContent).toContain(JSON.stringify(brief.notes));
+    expect(prompt.userContent).toBe(JSON.stringify(brief, null, 2));
+    expect(JSON.parse(prompt.userContent)).toEqual(brief);
+    expect(prompt.userContent).not.toContain("<brief_data");
+    expect(prompt.userContent).not.toContain(PROMPT_VERSION);
   });
 
 });
