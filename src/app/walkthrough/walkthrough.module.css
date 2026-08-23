@@ -1,0 +1,139 @@
+.page {
+  min-height: 100vh;
+  background: var(--navy);
+}
+
+.deck {
+  display: grid;
+  height: 100dvh;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  padding: 1.25rem;
+}
+
+.liveRegion {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.presentationChrome {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.slideCount {
+  margin: 0 0 0.6rem;
+  color: var(--white-dim);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+}
+
+.progress {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: var(--line);
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  background: var(--yellow);
+  transition: width 150ms ease;
+}
+
+.stage {
+  display: grid;
+  width: min(100%, 120rem, calc((100dvh - 7.75rem) * 16 / 9));
+  max-height: calc(100dvh - 7.75rem);
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+  place-self: center;
+  border: 1px solid var(--line);
+  background: var(--navy);
+}
+
+.slide {
+  display: grid;
+  min-height: 0;
+  padding: 7.4% 6.25%;
+  animation: fade-in 150ms ease-out;
+}
+
+.title,
+.demoTitle {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(3rem, 6vw, 7rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 0.9;
+}
+
+.title { align-self: start; }
+
+.problemRows,
+.stackContent,
+.aiRows,
+.numberedList,
+.tradeoffs {
+  align-self: center;
+}
+
+.problemRows,
+.stackRows,
+.aiRows { border-top: 1px solid var(--line); }
+
+.contentRow {
+  display: grid;
+  grid-template-columns: minmax(11rem, 0.5fr) minmax(0, 1.5fr);
+  gap: clamp(1rem, 3vw, 4rem);
+  padding: clamp(0.7rem, 1.25vw, 1.25rem) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.contentRow p,
+.tradeoffs p { margin: 0; font-size: clamp(1rem, 1.4vw, 1.5rem); line-height: 1.35; }
+.contentRow p:first-child { color: var(--white-dim); font-weight: 700; }
+.accentRow p { color: var(--yellow); }
+.accentRow p:first-child { color: var(--yellow); }
+.stackContent { display: grid; gap: clamp(2rem, 7vw, 8rem); }
+.flow { margin: 0; color: var(--yellow); font-size: clamp(0.85rem, 1.1vw, 1.25rem); font-weight: 700; letter-spacing: 0.06em; line-height: 1.5; }
+
+.numberedList { display: grid; gap: clamp(0.75rem, 2vw, 2rem); margin: 0; padding-left: 2rem; font-size: clamp(1.25rem, 2.2vw, 2.75rem); line-height: 1.2; }
+.numberedList li::marker { color: var(--yellow); font-family: var(--display); }
+.improvementList { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(3rem, 9vw, 10rem); font-size: clamp(1rem, 1.55vw, 1.8rem); }
+.monospace { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.successRow p { color: var(--success); }
+.successRow p:first-child { color: var(--success); }
+.failureRow p { color: var(--danger); }
+.failureRow p:first-child { color: var(--danger); }
+
+.tradeoffs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(2rem, 6vw, 8rem); }
+.tradeoffs section { padding-top: 1rem; border-top: 3px solid var(--yellow); }
+.tradeoffs h2 { margin: 0 0 1rem; font-family: var(--display); font-size: clamp(2rem, 3vw, 4rem); font-weight: 400; line-height: 0.95; }
+.tradeoffs p { color: var(--white-muted); }
+.demoStage { border: 0; }
+.demoTitle { align-self: center; justify-self: center; font-size: clamp(6rem, 17vw, 20rem); }
+
+.controls { display: flex; justify-content: space-between; width: min(100%, 120rem); margin: 1rem auto 0; }
+.controls button { min-width: 7.5rem; padding: 0.7rem 1rem; border: 1px solid var(--yellow); color: var(--navy); background: var(--yellow); font: inherit; font-weight: 700; }
+.controls button:disabled { border-color: var(--line); color: var(--white-dim); background: transparent; }
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .slide, .progress span { animation: none; transition: none; } }
+@media (max-width: 700px) {
+  .deck { height: auto; min-height: 100vh; overflow: visible; padding: 0.75rem; }
+  .stage { aspect-ratio: auto; min-height: calc(100vh - 7rem); }
+  .slide { padding: 2rem 1.5rem; }
+  .contentRow { grid-template-columns: 1fr; gap: 0.35rem; }
+  .improvementList, .tradeoffs { grid-template-columns: 1fr; }
+  .improvementList { gap: 1rem; }
+  .flow { word-spacing: 0.1em; }
+}
