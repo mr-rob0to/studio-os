@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type SyntheticEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { z } from "zod";
 
 import {
   apiErrorSchema,
@@ -64,7 +65,7 @@ export function BriefForm() {
     }
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (submissionInFlight.current) {
@@ -75,7 +76,7 @@ export function BriefForm() {
     const parsed = briefInputSchema.safeParse(values);
 
     if (!parsed.success) {
-      const flattened = parsed.error.flatten().fieldErrors;
+      const flattened = z.flattenError(parsed.error).fieldErrors;
       const errors = Object.fromEntries(
         (Object.keys(flattened) as FieldName[]).map((field) => [
           field,
