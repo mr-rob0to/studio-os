@@ -1,7 +1,7 @@
 # Studio OS Agent Instructions
 
 - Read and follow [`docs/constitution.md`](docs/constitution.md) before planning or implementation.
-- Treat [`docs/superpowers/plans/2026-08-22-studio-os.md`](docs/superpowers/plans/2026-08-22-studio-os.md) as the live delivery state.
+- Treat [`docs/plans/2026-08-22-studio-os.md`](docs/plans/2026-08-22-studio-os.md) as the live delivery state.
 - Use one fresh session, short-lived branch, and pull request per numbered task.
 - Fetch `origin/main` and branch from that fetched ref in the current checkout.
 - Use a worktree only when genuinely parallel work requires more than one active checkout.
